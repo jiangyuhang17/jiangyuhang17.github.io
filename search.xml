@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>LeetCode 974. 和可被 K 整除的子数组</title>
+    <url>/2020/03/09/LeetCode-974/</url>
+    <content><![CDATA[<h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p><a href="https://leetcode-cn.com/problems/subarray-sums-divisible-by-k/" target="_blank" rel="noopener">和可被 K 整除的子数组</a></p>
+<p>给定一个整数数组 A，返回其中元素之和可被 K 整除的（连续、非空）子数组的数目。</p>
+<p>示例 1 :</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">输入：A = [<span class="number">4</span>,<span class="number">5</span>,<span class="number">0</span>,<span class="number">-2</span>,<span class="number">-3</span>,<span class="number">1</span>], K = <span class="number">5</span></span><br><span class="line">输出：<span class="number">7</span></span><br><span class="line">解释：</span><br><span class="line">有 <span class="number">7</span> 个子数组满足其元素之和可被 K = <span class="number">5</span> 整除：</span><br><span class="line">[<span class="number">4</span>, <span class="number">5</span>, <span class="number">0</span>, <span class="number">-2</span>, <span class="number">-3</span>, <span class="number">1</span>], [<span class="number">5</span>], [<span class="number">5</span>, <span class="number">0</span>], [<span class="number">5</span>, <span class="number">0</span>, <span class="number">-2</span>, <span class="number">-3</span>], [<span class="number">0</span>], [<span class="number">0</span>, <span class="number">-2</span>, <span class="number">-3</span>], [<span class="number">-2</span>, <span class="number">-3</span>]</span><br></pre></td></tr></table></figure>
+
+<h2 id="解法一"><a href="#解法一" class="headerlink" title="解法一"></a>解法一</h2><p>看着题目与 <a href="https://leetcode-cn.com/problems/subarray-sum-equals-k/" target="_blank" rel="noopener">LeetCode 560. 和为K的子数组</a> 很像，就依葫芦画瓢地用了hash表的方法，时间复杂度为O(n<sup>2</sup>)，想法很好，不幸的是超时了。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">subarraysDivByK</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; A, <span class="keyword">int</span> K)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">unordered_map</span>&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; table;</span><br><span class="line">    table.insert(&#123;<span class="number">0</span>, <span class="number">1</span>&#125;);</span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>, ans = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; A.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">      sum += A[i];</span><br><span class="line">      <span class="keyword">auto</span> iter = table.<span class="built_in">begin</span>();</span><br><span class="line">      <span class="keyword">while</span> (iter != table.<span class="built_in">end</span>()) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((sum - iter-&gt;first) % K == <span class="number">0</span>)</span><br><span class="line">          ans += iter-&gt;second;</span><br><span class="line">        iter++;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (table.<span class="built_in">find</span>(sum) != table.<span class="built_in">end</span>())</span><br><span class="line">        table.<span class="built_in">find</span>(sum)-&gt;second++;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        table.insert(&#123;sum, <span class="number">1</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="解法二"><a href="#解法二" class="headerlink" title="解法二"></a>解法二</h2><p>其实两道题确实有关联，都是前缀和的题目，不过用hash表来记录前缀和的方法不适合这道题。</p>
+<p>考虑到如果两个前缀和对 K 进行取余的结果相等，则这两个前缀和之间的元素和可以被 K 整除，由于我们可以用大小为K的数组去记录所有前缀和的余数分布，然后累加起来得到最终结果。</p>
+<p><strong>取余公式：(x % K + K) % K</strong></p>
+<p>还要记得额外处理前缀和对 K 取余为0的情况。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">subarraysDivByK</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; A, <span class="keyword">int</span> K)</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">count</span><span class="params">(K)</span></span>;</span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; A.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">      sum += A[i];</span><br><span class="line">      count[(sum % K + K) % K]++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> ans = count[<span class="number">0</span>];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; K; i++) &#123;</span><br><span class="line">      ans += count[i] * (count[i] - <span class="number">1</span>) / <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>LeetCode</tag>
+        <tag>Al前缀和</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>LeetCode 713. 乘积小于K的子数组</title>
     <url>/2020/03/09/LeetCode-713/</url>
     <content><![CDATA[<h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p><a href="https://leetcode-cn.com/problems/subarray-product-less-than-k/" target="_blank" rel="noopener">乘积小于K的子数组</a></p>
@@ -12,7 +36,7 @@
 <p>题目难点在于，当right增长时如何计数，计数代码为：</p>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">ans += right - left + <span class="number">1</span></span><br></pre></td></tr></table></figure>
 
-<p>具体为什么这样计算，参照累加公示：</p>
+<p>具体为什么这样计算，参照<strong>累加和公式</strong>：</p>
 <p>$\sum_1^n x = n + \sum_1^{n-1} x$</p>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">numSubarrayProductLessThanK</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (k &lt;= <span class="number">1</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> product = <span class="number">1</span>, ans = <span class="number">0</span>, left = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> right = <span class="number">0</span>; right &lt; nums.<span class="built_in">size</span>(); right++) &#123;</span><br><span class="line">      product *= nums[right];</span><br><span class="line">      <span class="keyword">while</span> (product &gt;= k) &#123;</span><br><span class="line">        product /= nums[left];</span><br><span class="line">        left++;</span><br><span class="line">      &#125;</span><br><span class="line">      ans += right - left + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
@@ -20,7 +44,7 @@
       </categories>
       <tags>
         <tag>LeetCode</tag>
-        <tag>滑动窗口</tag>
+        <tag>Al滑动窗口</tag>
       </tags>
   </entry>
   <entry>
@@ -44,7 +68,8 @@
       </categories>
       <tags>
         <tag>LeetCode</tag>
-        <tag>滑动窗口</tag>
+        <tag>Al前缀和</tag>
+        <tag>Al滑动窗口</tag>
       </tags>
   </entry>
   <entry>
