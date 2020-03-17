@@ -10,6 +10,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
   <link rel="mask-icon" href="/images/logo.svg" color="#222">
   <meta name="google-site-verification" content="_h37qg0FUUvECrT0kIVe8kSBPmCPVbu1Tof6hipA14o">
+  <meta name="baidu-site-verification" content="AT7fA0MpQ8">
 
 <link rel="stylesheet" href="/css/main.css">
 
@@ -180,6 +181,114 @@
             
 
   <div class="posts-expand">
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/16/Cpp-thread-concurrency-1st/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/03/16/Cpp-thread-concurrency-1st/" class="post-title-link" itemprop="url">C++多线程并发系列（一）</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-16 23:22:08" itemprop="dateCreated datePublished" datetime="2020-03-16T23:22:08+08:00">2020-03-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-17 21:46:14" itemprop="dateModified" datetime="2020-03-17T21:46:14+08:00">2020-03-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/03/16/Cpp-thread-concurrency-1st/" class="post-meta-item leancloud_visitors" data-flag-title="C++多线程并发系列（一）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/03/16/Cpp-thread-concurrency-1st/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/16/Cpp-thread-concurrency-1st/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="一些概念"><a href="#一些概念" class="headerlink" title="一些概念"></a>一些概念</h1><p>C++标准不支持IPC，所以这里不涉及进程间通信，想要了解这方面内容可以参考特定操作系统的实现，比如<a href="https://book.douban.com/subject/4118577/" target="_blank" rel="noopener">《UNIX》网络编程 卷二</a>。</p>
+<h2 id="并行-amp-并发："><a href="#并行-amp-并发：" class="headerlink" title="并行 &amp; 并发："></a>并行 &amp; 并发：</h2><p>一般解释都是，并发是指宏观上在一段时间内能同时运行多个程序，而并行则指同一时刻能运行多个指令。下面给出一个从目的角度出发的解释：</p>
+<p>并行的主要目的是在硬件支持的基础上，来提升处理大量数据的性能</p>
+<p>并发的主要目的是 1. 将无关的代码分离，使程序更容易理解和测试 2. 提高任务响应速度</p>
+<h2 id="任务并行-amp-数据并行"><a href="#任务并行-amp-数据并行" class="headerlink" title="任务并行 &amp; 数据并行"></a>任务并行 &amp; 数据并行</h2><p>任务并行：将单个任务划分成多个任务，同时运行，减少整体运行时间，任务之间可能存在许多依赖关系。</p>
+<p>数据并行：将数据划分成多个不同的部分，每个线程同时对不同的数据部分执行相同的操作。</p>
+<h1 id="线程管理"><a href="#线程管理" class="headerlink" title="线程管理"></a>线程管理</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/03/16/Cpp-thread-concurrency-1st/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
         
   
   
@@ -542,7 +651,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-16 22:24:52" itemprop="dateModified" datetime="2020-03-16T22:24:52+08:00">2020-03-16</time>
+                <time title="修改时间：2020-03-16 22:26:37" itemprop="dateModified" datetime="2020-03-16T22:26:37+08:00">2020-03-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -779,20 +888,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-count">2</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

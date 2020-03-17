@@ -1,6 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>C++多线程并发系列（一）</title>
+    <url>/2020/03/16/Cpp-thread-concurrency-1st/</url>
+    <content><![CDATA[<h1 id="一些概念"><a href="#一些概念" class="headerlink" title="一些概念"></a>一些概念</h1><p>C++标准不支持IPC，所以这里不涉及进程间通信，想要了解这方面内容可以参考特定操作系统的实现，比如<a href="https://book.douban.com/subject/4118577/" target="_blank" rel="noopener">《UNIX》网络编程 卷二</a>。</p>
+<h2 id="并行-amp-并发："><a href="#并行-amp-并发：" class="headerlink" title="并行 &amp; 并发："></a>并行 &amp; 并发：</h2><p>一般解释都是，并发是指宏观上在一段时间内能同时运行多个程序，而并行则指同一时刻能运行多个指令。下面给出一个从目的角度出发的解释：</p>
+<p>并行的主要目的是在硬件支持的基础上，来提升处理大量数据的性能</p>
+<p>并发的主要目的是 1. 将无关的代码分离，使程序更容易理解和测试 2. 提高任务响应速度</p>
+<h2 id="任务并行-amp-数据并行"><a href="#任务并行-amp-数据并行" class="headerlink" title="任务并行 &amp; 数据并行"></a>任务并行 &amp; 数据并行</h2><p>任务并行：将单个任务划分成多个任务，同时运行，减少整体运行时间，任务之间可能存在许多依赖关系。</p>
+<p>数据并行：将数据划分成多个不同的部分，每个线程同时对不同的数据部分执行相同的操作。</p>
+<h1 id="线程管理"><a href="#线程管理" class="headerlink" title="线程管理"></a>线程管理</h1><p>线程使得程序能在数个处理器核心同时执行，定义于头文件<code>&lt;thread&gt;</code></p>
+<p><code>&lt;thread&gt;</code>主要内容：定义了一个类<code>std::thread</code>；定义了命名空间<code>std::this_thread</code>及其内部的辅助函数。更多内容详见 <a href="https://zh.cppreference.com/w/cpp/header/thread" target="_blank" rel="noopener">cppreference</a>。</p>
+<h2 id="线程基础"><a href="#线程基础" class="headerlink" title="线程基础"></a>线程基础</h2><h3 id="启动线程"><a href="#启动线程" class="headerlink" title="启动线程"></a>启动线程</h3><p><code>std::thread</code> 构造函数</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="built_in">std</span>::thread <span class="title">my_thread1</span><span class="params">(func_name)</span></span>; <span class="comment">// 将函数名作为参数</span></span><br><span class="line"><span class="function"><span class="built_in">std</span>::thread <span class="title">my_thread2</span><span class="params">(func_obj)</span></span>; <span class="comment">// 将函数对象作为参数</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：当将<code>函数对象</code>作为参数传递时，如果传递了一个临时变量，而不是一个命名的变量，那么C++编译器会将其解析为函数声明，而不是类型对象的定义。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="built_in">std</span>::thread <span class="title">my_thread</span><span class="params">(class_name())</span></span>; <span class="comment">// 将类的临时变量作为参数，会被错误解析成函数声明</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 解决方法</span></span><br><span class="line"><span class="function"><span class="built_in">std</span>::thread <span class="title">my_thread1</span><span class="params">((class_name()))</span></span>; <span class="comment">//多加一层括号</span></span><br><span class="line"><span class="built_in">std</span>::thread my_thread2 &#123;class_name()&#125;; <span class="comment">//使用新统一的初始化语法</span></span><br></pre></td></tr></table></figure>
+
+<p>非常推荐使用上面的第二种解决方法，C++11 的<code>花括号初始化</code>语法（花括号初始化不会允许 narrowing conversions，即会丢失信息的转换，例如int转char），下面的例子都将用 {} 初始化。</p>
+<p>使用<code>lambda表达式</code>也能避免这个问题。lambda表达式是 C++11 的一个新特性，它使用一个可以捕获局部变量的局部函数来生成一个函数对象。</p>
+<p><strong><code>注意</code>：<code>std::thread</code>的对象是线程句柄，可能处于不表示任何线程的状态（默认构造、被移动、join 或 detach 后），并且执行线程可能与任何 thread 对象无关（detach 后）</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">std</span>::thread my_thread1; <span class="comment">// 默认构造，不表示任何线程</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::thread my_thread2 &#123;func_name&#125;;</span><br><span class="line"><span class="built_in">std</span>::thread my_thread3 &#123;my_thread2&#125;; <span class="comment">// my_thread2 被移动给 my_thread3，不再表示任何线程</span></span><br></pre></td></tr></table></figure>
+
+<p>没有两个<code>std::thread</code>对象会表示同一执行线程,所以<code>std::thread</code>的对象是可移动的 (movable)，但不是可复制的 (copyable)。</p>
+<h3 id="join-amp-detach"><a href="#join-amp-detach" class="headerlink" title="join &amp; detach"></a>join &amp; detach</h3><p>在启动线程之后，需要明确是 <code>join</code>（等待线程结束）还是 <code>detach</code>（分离线程与<code>std::thread</code>对象）；如果在<code>std::thread</code>对象被销毁之前还没有做出决定，程序会被终止（<code>std::thread</code>的析构函数会调用<code>std::terminate()</code>）。因此，要保证即使有异常存在，也需要确保线程能够正确的 join 或 detech。</p>
+<h4 id="join"><a href="#join" class="headerlink" title="join"></a>join</h4><p>调用join()的行为，清理了线程相关的存储部分，这样std::thread对象将不再与已经完成的线程有任何关联。这意味着，只能对一个线程使用一次join()；一旦已经使用过join()，std::thread对象就不能再次join了，当对其使用joinable()时，将返回false。</p>
+<p>考虑到对线程使用join()之前，调用的函数可能会产生异常而终止，有两种方式可以保证join()在调用函数退出前被执行：</p>
+<ul>
+<li><p><code>try / catch</code>语句块捕获异常；</p>
+</li>
+<li><p>使用<code>RAII</code>(在构造函数内获取资源，在析构函数内释放资源)，提供一个类，在析构函数中使用join()。</p>
+</li>
+</ul>
+<h4 id="detach"><a href="#detach" class="headerlink" title="detach"></a>detach</h4><p>使用detach()会让线程在后台运行，这就意味着主线程不能与之产生直接交互。C++运行库保证，当线程退出时，相关资源的能够正确回收，后台线程的归属和控制由C++运行库来处理。通常称 detach 后的线程为<code>守护线程</code>(daemon threads)。</p>
+<p>如果要 detach 线程，就必须保证线程结束之前，可访问的数据的有效性，避免产生<code>未定义行为</code>。这种情况很可能发生在线程还没结束，函数已经退出的时候，这时线程函数还持有函数局部变量的指针或引用。</p>
+<h3 id="向线程函数传参"><a href="#向线程函数传参" class="headerlink" title="向线程函数传参"></a>向线程函数传参</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">(<span class="keyword">int</span> i, <span class="built_in">std</span>::<span class="built_in">string</span> <span class="keyword">const</span>&amp; s)</span></span>; </span><br><span class="line"><span class="built_in">std</span>::thread t &#123;func, <span class="number">3</span>, <span class="string">"hello"</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>使用带有数据成员的函数对象类似于给函数传递参数。<code>std::string const&amp;</code>和<code>const std::string&amp;</code>没有区别。</p>
+<h4 id="案例一"><a href="#案例一" class="headerlink" title="案例一"></a>案例一</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">(<span class="keyword">int</span> i, <span class="built_in">std</span>::<span class="built_in">string</span> <span class="keyword">const</span>&amp; s)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">oops</span><span class="params">(<span class="keyword">int</span> some_param)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> <span class="built_in">buffer</span>[<span class="number">1024</span>];</span><br><span class="line">  <span class="built_in">sprintf</span>(<span class="built_in">buffer</span>, <span class="string">"%i"</span>, some_param);</span><br><span class="line">  <span class="built_in">std</span>::thread t &#123;func, <span class="number">3</span>, <span class="built_in">buffer</span>&#125;; <span class="comment">// 可能导致未定义行为</span></span><br><span class="line">  t.<span class="built_in">detach</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述程序在传递参数时，将字符串的字面值（即buffer，char const * 类型）传给线程函数的第二个参数，之后，在线程的上下文中需要完成字面值向 std::string 对象的转化。如果函数 oops 在 buffer 转换成 std::string 对象之前结束，则会导致一些未定义行为。</p>
+<p>这个问题的解决方案就是在传递到std::thread构造函数之前就将字面值转化为std::string对象。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">std</span>::thread t &#123;func, <span class="number">3</span>, <span class="built_in">std</span>::<span class="built_in">string</span>(<span class="built_in">buffer</span>)&#125;;</span><br></pre></td></tr></table></figure>
+
+<h4 id="案例二"><a href="#案例二" class="headerlink" title="案例二"></a>案例二</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">update_data</span><span class="params">(<span class="keyword">int</span> id, <span class="built_in">std</span>::<span class="built_in">string</span>&amp; data)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">oops</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> data;</span><br><span class="line">    <span class="built_in">std</span>:thread t &#123;update_data, id, data&#125;; <span class="comment">// 会导致编译失败</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>std::thread</code>的构造函数无视线程函数期待的参数类型（引用），并盲目地拷贝已提供的变量，会导致编译失败。</p>
+]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+        <tag>并发控制</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>LeetCode 234. 回文链表</title>
     <url>/2020/03/15/LeetCode-234/</url>
     <content><![CDATA[<h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p><a href="https://leetcode-cn.com/problems/palindrome-linked-list/" target="_blank" rel="noopener">回文链表</a></p>
@@ -98,8 +153,8 @@
       </categories>
       <tags>
         <tag>LeetCode</tag>
-        <tag>AL前缀和</tag>
         <tag>AL滑动窗口</tag>
+        <tag>AL前缀和</tag>
       </tags>
   </entry>
   <entry>
