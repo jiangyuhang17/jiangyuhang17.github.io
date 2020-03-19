@@ -1,11 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>LeetCode 78. 子集</title>
+    <url>/2020/03/18/LeetCode-78/</url>
+    <content><![CDATA[<h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p><a href="https://leetcode-cn.com/problems/subsets/" target="_blank" rel="noopener">子集</a></p>
+<p>给定一组不含重复元素的整数数组 nums，返回该数组所有可能的子集。(解集不能包含重复的子集。)</p>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">输入: nums &#x3D; [1,2,3]</span><br><span class="line">输出:</span><br><span class="line">[</span><br><span class="line">  [3],</span><br><span class="line">  [1],</span><br><span class="line">  [2],</span><br><span class="line">  [1,2,3],</span><br><span class="line">  [1,3],</span><br><span class="line">  [2,3],</span><br><span class="line">  [1,2],</span><br><span class="line">  []</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<h2 id="解法一（递归）"><a href="#解法一（递归）" class="headerlink" title="解法一（递归）"></a>解法一（递归）</h2><p>观察到输出集合从空集开始，依次遍历nums内的数值，每遍历一个数值，就往输出集合中加入原来的所有子集中添加当前遍历到的数值。例如，遍历到nums内的数值2，输出集合原来的子集有[]、[1]，需要往集合中添加[2]、[1,2]。使用递归实现这一过程。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt; <span class="title">subsets</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt; ans;</span><br><span class="line">    ans.push_back(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; &#123;&#125;);</span><br><span class="line">    subsetsCore(nums, ans, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">subsetsCore</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt;&amp; ans, <span class="keyword">int</span> level)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (level &gt; nums.<span class="built_in">size</span>())</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">size</span> = ans.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="built_in">size</span>; i++) &#123;</span><br><span class="line">      <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; tmp = ans[i];</span><br><span class="line">      tmp.push_back(nums[level - <span class="number">1</span>]);</span><br><span class="line">      ans.push_back(tmp);</span><br><span class="line">    &#125;</span><br><span class="line">    subsetsCore(nums, ans, level + <span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="解法二（回溯）"><a href="#解法二（回溯）" class="headerlink" title="解法二（回溯）"></a>解法二（回溯）</h2><p>输出集合从空集开始，回溯先从nums的第一个数值1开始，依次得到[1]、[1,2]、[1,2,3]、[1,3]，然后再从nums的第二个、第三个数值开始，直到回溯结束。</p>
+<p><strong>回溯算法模版</strong></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">result = []</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">backtrack</span><span class="params">(路径, 选择列表)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> 满足结束条件:</span><br><span class="line">        result.add(路径)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    <span class="keyword">for</span> 选择 <span class="keyword">in</span> 选择列表:</span><br><span class="line">        做选择</span><br><span class="line">        backtrack(路径, 选择列表)</span><br><span class="line">        撤销选择</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt; <span class="title">subsets</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">    backtrace(nums, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">backtrace</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> pos)</span> </span>&#123;</span><br><span class="line">    ans.push_back(path);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = pos; i &lt; nums.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">      path.push_back(nums[i]);</span><br><span class="line">      backtrace(nums, i + <span class="number">1</span>);</span><br><span class="line">      path.pop_back();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">  <span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt; ans;</span><br><span class="line">  <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; path &#123;&#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="解法三（位运算）"><a href="#解法三（位运算）" class="headerlink" title="解法三（位运算）"></a>解法三（位运算）</h2><p>子集的所有情况其实可以用n位的二进制（n 为 <code>nums.size()</code>），例如上面的例子可以用3位二进制表示所有情况，000、001、010、011、100、101、110、111。不过如果nums的size大于一定数值时会溢出（例如int类型不能超过32位），可以使用bitset。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt; <span class="title">subsets</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&gt; ans;</span><br><span class="line">    <span class="keyword">int</span> N = <span class="number">1</span> &lt;&lt; nums.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">      <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; tmp;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; nums.<span class="built_in">size</span>(); j++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (i &amp; (<span class="number">1</span> &lt;&lt; j)) &#123;</span><br><span class="line">          tmp.push_back(nums[j]);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      ans.push_back(tmp);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>LeetCode</tag>
+        <tag>ALT子集类型</tag>
+        <tag>AL递归</tag>
+        <tag>AL回溯</tag>
+        <tag>AL位运算</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>C++多线程并发系列（一）</title>
     <url>/2020/03/16/Cpp-thread-concurrency-1st/</url>
     <content><![CDATA[<h1 id="一些概念"><a href="#一些概念" class="headerlink" title="一些概念"></a>一些概念</h1><p>C++标准不支持IPC，所以这里不涉及进程间通信，想要了解这方面内容可以参考特定操作系统的实现，比如<a href="https://book.douban.com/subject/4118577/" target="_blank" rel="noopener">《UNIX》网络编程 卷二</a>。</p>
 <h2 id="并行-amp-并发："><a href="#并行-amp-并发：" class="headerlink" title="并行 &amp; 并发："></a>并行 &amp; 并发：</h2><p>一般解释都是，并发是指宏观上在一段时间内能同时运行多个程序，而并行则指同一时刻能运行多个指令。下面给出一个从目的角度出发的解释：</p>
-<p>并行的主要目的是在硬件支持的基础上，来提升处理大量数据的性能。</p>
+<p>并行的主要目的是在硬件支持的基础上，来提升处理大量数据的性能，用来解决一个单一的任务。</p>
 <p>并发的主要目的是 1. 将无关的代码分离，使程序更容易理解和测试 2. 提高任务响应速度。</p>
 <h2 id="任务并行-amp-数据并行"><a href="#任务并行-amp-数据并行" class="headerlink" title="任务并行 &amp; 数据并行"></a>任务并行 &amp; 数据并行</h2><p>任务并行：将单个任务划分成多个任务，同时运行，减少整体运行时间，任务之间可能存在许多依赖关系。</p>
 <p>数据并行：将数据划分成多个不同的部分，每个线程同时对不同的数据部分执行相同的操作。</p>
@@ -105,8 +135,8 @@
       </categories>
       <tags>
         <tag>LeetCode</tag>
-        <tag>AL快慢指针</tag>
-        <tag>AL链表翻转</tag>
+        <tag>ALT快慢指针</tag>
+        <tag>ALT链表翻转</tag>
       </tags>
   </entry>
   <entry>
@@ -130,7 +160,8 @@
       </categories>
       <tags>
         <tag>LeetCode</tag>
-        <tag>AL前缀和</tag>
+        <tag>ALT前缀和</tag>
+        <tag>AL取余</tag>
       </tags>
   </entry>
   <entry>
@@ -153,7 +184,7 @@
       </categories>
       <tags>
         <tag>LeetCode</tag>
-        <tag>AL滑动窗口</tag>
+        <tag>ALT滑动窗口</tag>
       </tags>
   </entry>
   <entry>
@@ -178,8 +209,9 @@
       </categories>
       <tags>
         <tag>LeetCode</tag>
-        <tag>AL滑动窗口</tag>
-        <tag>AL前缀和</tag>
+        <tag>ALT滑动窗口</tag>
+        <tag>ALT前缀和</tag>
+        <tag>AL哈希表</tag>
       </tags>
   </entry>
   <entry>
