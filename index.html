@@ -184,6 +184,113 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/22/Cpp-thread-concurrency-2nd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/03/22/Cpp-thread-concurrency-2nd/" class="post-title-link" itemprop="url">C++多线程并发系列（二）</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-22 14:35:05" itemprop="dateCreated datePublished" datetime="2020-03-22T14:35:05+08:00">2020-03-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-24 00:07:04" itemprop="dateModified" datetime="2020-03-24T00:07:04+08:00">2020-03-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/03/22/Cpp-thread-concurrency-2nd/" class="post-meta-item leancloud_visitors" data-flag-title="C++多线程并发系列（二）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/03/22/Cpp-thread-concurrency-2nd/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/22/Cpp-thread-concurrency-2nd/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="同步对象的类型"><a href="#同步对象的类型" class="headerlink" title="同步对象的类型"></a>同步对象的类型</h1><h2 id="Locks"><a href="#Locks" class="headerlink" title="Locks"></a>Locks</h2><p>Lock（锁）是一个抽象概念，锁保护了对某种共享资源的访问，只有拥有锁，才能访问受保护的共享资源。要拥有锁，首先需要某个 lockable 的对象，然后从该对象中获得锁。</p>
+<p>锁的概念还有着某种 exclusion（排斥），有时可能无法获得锁的所有权，这个操作会失败（返回一些错误代码或异常，以表明获取锁的尝试失败）或阻塞（直到拥有锁才能返回）。</p>
+<h2 id="Mutexes"><a href="#Mutexes" class="headerlink" title="Mutexes"></a>Mutexes</h2><p>Mutex（互斥量，Mutual Exclusion 的缩写），如果不加术语限定，它就是一种 lockable 对象类型，一次只能由一个线程拥有它的锁，只有获得锁的线程才能释放 mutex 上的锁。当 mutex 被锁时，任何获取锁的尝试都将失败或阻塞，即使该尝试是由同一线程发出的。</p>
+<h3 id="Recursive-Mutexes"><a href="#Recursive-Mutexes" class="headerlink" title="Recursive Mutexes"></a>Recursive Mutexes</h3><p>Recursive mutex（嵌套互斥量）类似于 mutex，但是一个线程可以同时拥有多个它的锁。线程A可以在不释放已持有的锁的情况下，获取 recursive mutex 上更多的锁；但是线程B不能获得 recursive mutex 上的任何锁，直到线程A持有的所有锁都已释放。</p>
+<p>在大多数情况下，recursive mutex 是不可取的，因为它使得代码难以理解。</p>
+<h3 id="Reader-Writer-Mutexes"><a href="#Reader-Writer-Mutexes" class="headerlink" title="Reader/Writer Mutexes"></a>Reader/Writer Mutexes</h3>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/03/22/Cpp-thread-concurrency-2nd/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/18/LeetCode-78/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1003,7 +1110,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
