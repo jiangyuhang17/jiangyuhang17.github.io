@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="_h37qg0FUUvECrT0kIVe8kSBPmCPVbu1Tof6hipA14o">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="概述上一篇中，我们看到各种在线程间保护共享数据的方法。有时候我们不仅想要保护数据，还想在独立的线程间进行同步操作。例如，在第一个线程完成前，可能需要等待另一个线程执行完成。通常情况下，线程会等待一个特定事件发生，或者等待某一条件达成。 尽管可以通过定期检查共享数据中存储的“任务完成”标志或类似内容来执行此操作，但这不是很理想。像这样的线程间同步操作的需求非常普遍，C++标准库以condition">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++多线程并发系列（三）">
+<meta property="og:url" content="http://yoursite.com/2020/03/29/Cpp-thread-concurrency-3rd/index.html">
+<meta property="og:site_name" content="jiangyuhang17">
+<meta property="og:description" content="概述上一篇中，我们看到各种在线程间保护共享数据的方法。有时候我们不仅想要保护数据，还想在独立的线程间进行同步操作。例如，在第一个线程完成前，可能需要等待另一个线程执行完成。通常情况下，线程会等待一个特定事件发生，或者等待某一条件达成。 尽管可以通过定期检查共享数据中存储的“任务完成”标志或类似内容来执行此操作，但这不是很理想。像这样的线程间同步操作的需求非常普遍，C++标准库以condition">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-29T02:48:34.000Z">
+<meta property="article:modified_time" content="2020-03-29T14:54:24.632Z">
+<meta property="article:author" content="Yuhang Jiang">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="并发控制">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/29/Cpp-thread-concurrency-3rd/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>C++多线程并发系列（三） | jiangyuhang17</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">jiangyuhang17</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jiangyuhang17" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/29/Cpp-thread-concurrency-3rd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++多线程并发系列（三）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-03-29 10:48:34 / 修改时间：22:54:24" itemprop="dateCreated datePublished" datetime="2020-03-29T10:48:34+08:00">2020-03-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/03/29/Cpp-thread-concurrency-3rd/" class="post-meta-item leancloud_visitors" data-flag-title="C++多线程并发系列（三）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/03/29/Cpp-thread-concurrency-3rd/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/29/Cpp-thread-concurrency-3rd/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>上一篇中，我们看到各种在线程间保护共享数据的方法。有时候我们不仅想要保护数据，还想在独立的线程间进行同步操作。例如，在第一个线程完成前，可能需要等待另一个线程执行完成。通常情况下，线程会等待一个特定事件发生，或者等待某一条件达成。</p>
+<p>尽管可以通过定期检查共享数据中存储的“任务完成”标志或类似内容来执行此操作，但这不是很理想。像这样的线程间同步操作的需求非常普遍，C++标准库以<code>condition variables</code>和<code>future</code>的形式提供了处理它的工具。</p>
+<h1 id="等待一个事件或者其他条件"><a href="#等待一个事件或者其他条件" class="headerlink" title="等待一个事件或者其他条件"></a>等待一个事件或者其他条件</h1><p>当一个线程等待另一个线程完成任务时，它可以用很多种选择。第一，它可以持续地检查共享数据标志，直到另一线程完成工作时对这个标志进行重设；这样线程会消耗宝贵的执行时间来持续地检查对应标志，并且当互斥量被等待线程上锁后，其他线程就没有办法获取锁，这样线程就会持续等待。</p>
+<p>第二个选择线程使用<code>std::this_thread::sleep_for()</code>在检查之间进行周期性的休眠。这个实现就进步很多，因为当线程休眠时，线程没有浪费执行时间，但是很难确定正确的休眠时间。太短的休眠和没有休眠一样，都会浪费执行时间；太长的休眠时间，可能会让任务等待线程醒来。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> flag;</span><br><span class="line"><span class="built_in">std</span>::mutex m;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">wait_for_flag</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="function"><span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lk</span><span class="params">(m)</span></span>;</span><br><span class="line">  <span class="keyword">while</span>(!flag)</span><br><span class="line">  &#123;</span><br><span class="line">    lk.unlock();</span><br><span class="line">    <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::milliseconds(<span class="number">100</span>));</span><br><span class="line">    lk.lock();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第三个选择，也是优先的选择，使用C++标准库提供的工具去等待事件的发生。等待由另一个线程触发的事件的最基础机制就是<code>condition variables</code>（条件变量）。</p>
+<h2 id="condition-variables"><a href="#condition-variables" class="headerlink" title="condition variables"></a>condition variables</h2><p>C++标准库对条件变量有两套实现：<code>std::condition_variable</code>和<code>std::condition_variable_any</code>。这两个实现都包含在<code>&lt;condition_variable&gt;</code>头文件的声明中。</p>
+<p>两者都需要与一个互斥量一起才能工作(互斥量是为了同步)；前者仅限于与<code>std::mutex</code>一起工作，而后者可以和任何满足最低标准的互斥量一起工作，从而加上了_any的后缀。因为<code>std::condition_variable_any</code>更加通用，这就可能从体积、性能，以及系统资源的使用方面产生额外的开销，所以<code>std::condition_variable</code>一般作为首选的类型，当对灵活性有硬性要求时，我们才会去考虑<code>std::condition_variable_any</code>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用条件变量处理数据等待</span></span><br><span class="line"><span class="built_in">std</span>::mutex mut;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">queue</span>&lt;data_chunk&gt; data_queue;</span><br><span class="line"><span class="built_in">std</span>::condition_variable data_cond;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">data_preparation_thread</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(more_data_to_prepare())</span><br><span class="line">  &#123;</span><br><span class="line">    data_chunk <span class="keyword">const</span> data=prepare_data();</span><br><span class="line">    <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lk</span><span class="params">(mut)</span></span>;</span><br><span class="line">    data_queue.push(data);</span><br><span class="line">    data_cond.notify_one();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">data_processing_thread</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(<span class="literal">true</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="function"><span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lk</span><span class="params">(mut)</span></span>;</span><br><span class="line">    data_cond.wait(</span><br><span class="line">         lk,[]&#123;<span class="keyword">return</span> !data_queue.empty();&#125;);</span><br><span class="line">    data_chunk data=data_queue.front();</span><br><span class="line">    data_queue.pop();</span><br><span class="line">    lk.unlock();</span><br><span class="line">    <span class="built_in">process</span>(data);</span><br><span class="line">    <span class="keyword">if</span>(is_last_chunk(data))</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于正在处理数据的线程，这个线程首先对互斥量上锁，这里<code>std::unique_lock</code>要比<code>std::lock_guard</code>更加合适。线程之后会调用<code>std::condition_variable</code>的成员函数<code>wait()</code>，传递一个锁和一个lambda函数表达式(作为等待的条件)。Lambda函数是C++ 11添加的新特性，它可以让一个匿名函数作为其他表达式的一部分，本质是一个函数对象，并且非常合适作为标准函数的谓词。本质上来说，<code>std::condition_variable::wait</code>是对“busy-wait”的一种优化。</p>
+<p>很多线程可能等待同一事件，对于通知，他们都需要做出回应。在这种情况下，线程准备好数据时，就会通过条件变量调用<code>notify_all()</code>成员函数，而非直接调用<code>notify_one()</code>函数。</p>
+<h1 id="使用future等待一次性事件"><a href="#使用future等待一次性事件" class="headerlink" title="使用future等待一次性事件"></a>使用future等待一次性事件</h1><p>C++标准库模型将一次性事件称为<code>future</code>(期望值)。当线程需要等待特定的一次性事件时，某种程度上来说就需要知道这个事件在未来的期望结果。之后，这个线程会周期性的等待或检查，事件是否触发；检查期间也会执行其他任务。另外，等待任务期间它可以先执行另外一些任务，直到对应的任务触发，而后等待期望值的状态会变为就绪。一个期望值可能是数据相关的，也可能不是。当事件发生时(并且期望状态为就绪)，并且这个期望值就不能被重置。</p>
+<p>C++标准库中，有两种期望值，使用两种类型模板实现，声明在<code>&lt;future&gt;</code>头文件中：<code>unique futures</code>(唯一期望值)(<code>std::future&lt;&gt;</code>)和<code>shared futures</code>(共享期望值)(<code>std::shared_future&lt;&gt;</code>)。<code>std::future</code>的实例只能与一个指定事件相关联，而<code>std::shared_future</code>的实例就能关联多个事件。后者的实现中，所有实例会在同时变为就绪状态，并且他们可以访问与事件相关的任何数据。与数据无关处，可以使用<code>std::future&lt;void&gt;</code>与<code>std::shared_future&lt;void&gt;</code>的特化模板。<strong>期望值对象本身并不提供同步访问</strong>，当多个线程需要访问一个独立期望值对象时，必须使用互斥量或类似同步机制对访问进行保护</p>
+<h2 id="后台返回任务值"><a href="#后台返回任务值" class="headerlink" title="后台返回任务值"></a>后台返回任务值</h2><p>当不着急要任务结果时，可以使用<code>std::async</code>启动一个异步任务。与<code>std::thread</code>对象等待的方式（不提供直接接收返回值的机制）不同，<code>std::async</code>会返回一个<code>std::future</code>对象，这个对象持有最终计算出来的结果。当需要这个值时，只需要调用这个对象的get()成员函数；并且会阻塞线程直到期望值状态为就绪为止；之后，返回计算结果。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用std::future从异步任务中获取返回值</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">find_the_answer_to_ltuae</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_other_stuff</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">future</span>&lt;<span class="keyword">int</span>&gt; the_answer=<span class="built_in">std</span>::async(find_the_answer_to_ltuae);</span><br><span class="line">  do_other_stuff();</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">cout</span>&lt;&lt;<span class="string">"The answer is "</span>&lt;&lt;the_answer.<span class="built_in">get</span>()&lt;&lt;<span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与<code>std::thread</code>做的方式一样，<code>std::async</code>允许你通过添加额外的调用参数，向函数传递额外的参数。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用std::async向函数传递参数</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;future&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">X</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(<span class="keyword">int</span>,<span class="built_in">std</span>::<span class="built_in">string</span> <span class="keyword">const</span>&amp;)</span></span>;</span><br><span class="line">  <span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">bar</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">string</span> <span class="keyword">const</span>&amp;)</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line">X x;</span><br><span class="line"><span class="keyword">auto</span> f1=<span class="built_in">std</span>::async(&amp;X::foo,&amp;x,<span class="number">42</span>,<span class="string">"hello"</span>);  <span class="comment">// 调用p-&gt;foo(42, "hello")，p是指向x的指针</span></span><br><span class="line"><span class="keyword">auto</span> f2=<span class="built_in">std</span>::async(&amp;X::bar,x,<span class="string">"goodbye"</span>);  <span class="comment">// 调用tmpx.bar("goodbye")， tmpx是x的拷贝副本</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Y</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="function"><span class="keyword">double</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">double</span>)</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line">Y y;</span><br><span class="line"><span class="keyword">auto</span> f3=<span class="built_in">std</span>::async(Y(),<span class="number">3.141</span>);  <span class="comment">// 调用tmpy(3.141)，tmpy通过Y的移动构造函数得到</span></span><br><span class="line"><span class="keyword">auto</span> f4=<span class="built_in">std</span>::async(<span class="built_in">std</span>::ref(y),<span class="number">2.718</span>);  <span class="comment">// 调用y(2.718)</span></span><br><span class="line"><span class="function">X <span class="title">baz</span><span class="params">(X&amp;)</span></span>;</span><br><span class="line"><span class="built_in">std</span>::async(baz,<span class="built_in">std</span>::ref(x));  <span class="comment">// 调用baz(x)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">move_only</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  move_only();</span><br><span class="line">  move_only(move_only&amp;&amp;)</span><br><span class="line">  move_only(move_only <span class="keyword">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line">  move_only&amp; <span class="keyword">operator</span>=(move_only&amp;&amp;);</span><br><span class="line">  move_only&amp; <span class="keyword">operator</span>=(move_only <span class="keyword">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">auto</span> f5=<span class="built_in">std</span>::async(move_only());  <span class="comment">// 调用tmp()，tmp是通过std::move(move_only())构造得到</span></span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，<code>std::async</code>启动新线程，还是当future等待时才同步运行任务，取决于实现。大多数情况下，就是你想要的结果，但是你也可以在函数调用之前向std::async传递一个额外参数。这个参数的类型是<code>std::launch</code>，既可以是<code>std::launch::defered</code>，表明函数调用被延迟到<code>wait()</code>或<code>get()</code>函数调用时才执行，也可以是<code>std::launch::async</code>，表明函数必须在其所在的独立线程上执行，还可以是 <code>std::launch::deferred | std::launch::async</code>，表明实现可以选择这两种方式的一种，最后一个选项是默认的。当函数调用被延迟，它可能不会再运行了。如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> f6=<span class="built_in">std</span>::async(<span class="built_in">std</span>::launch::async,Y(),<span class="number">1.2</span>);  <span class="comment">// 在新线程上执行</span></span><br><span class="line"><span class="keyword">auto</span> f7=<span class="built_in">std</span>::async(<span class="built_in">std</span>::launch::deferred,baz,<span class="built_in">std</span>::ref(x));  <span class="comment">// 在wait()或get()调用时执行</span></span><br><span class="line"><span class="keyword">auto</span> f8=<span class="built_in">std</span>::async(</span><br><span class="line">              <span class="built_in">std</span>::launch::deferred | <span class="built_in">std</span>::launch::async,</span><br><span class="line">              baz,<span class="built_in">std</span>::ref(x));  <span class="comment">// 实现选择执行方式</span></span><br><span class="line"><span class="keyword">auto</span> f9=<span class="built_in">std</span>::async(baz,<span class="built_in">std</span>::ref(x));</span><br><span class="line">f7.wait();  <span class="comment">//  调用延迟函数</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="创造future的三种方式"><a href="#创造future的三种方式" class="headerlink" title="创造future的三种方式"></a>创造future的三种方式</h3><p><code>std::async</code>不是让<code>std::future</code>与任务实例相关联的唯一方式；你也可以将任务包装入<code>std::packaged_task&lt;&gt;</code>实例中，或通过编写代码的方式，使用<code>std::promise&lt;&gt;</code>类型模板显式设置值。与<code>std::promise&lt;&gt;</code>对比，<code>std::packaged_task&lt;&gt;</code>具有更高层的抽象，所以我们从“高抽象”的模板说起。</p>
+<h2 id="任务与期望值关联"><a href="#任务与期望值关联" class="headerlink" title="任务与期望值关联"></a>任务与期望值关联</h2><p><code>std::packaged_task&lt;&gt;</code>对一个函数或可调用对象，绑定一个期望值。当调用<code>std::packaged_task&lt;&gt;</code>对象时，它就会调用相关函数或可调用对象，将期望状态置为就绪，返回值也会被存储。</p>
+<p><code>std::packaged_task&lt;&gt;</code>的模板参数是一个函数签名。函数签名的返回类型可以用来标识从<code>get_future()</code>返回的<code>std::future&lt;&gt;</code>的类型，而函数签名的参数列表，可用来指定packaged_task的函数调用操作符。</p>
+<p>由于<code>std::packaged_task</code>对象是一个可调用对象，所以可以封装在<code>std::function</code>对象中，从而作为线程函数传递到<code>std::thread</code>对象中，或作为可调用对象传递另一个函数中，或可以直接进行调用。当<code>std::packaged_task</code>作为一个函数被调用时，实参将由函数调用操作符传递到底层函数，并且返回值作为异步结果存储在<code>std::future</code>，可通过<code>get_future()</code>获取。</p>
+<p>因此你可以把用<code>std::packaged_task</code>打包任务，并在它被传到别处之前的适当时机取回期望值。当需要异步任务的返回值时，你可以等待期望的状态变为“就绪”。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;deque&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;mutex&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utility&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::mutex m;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">deque</span>&lt;<span class="built_in">std</span>::packaged_task&lt;<span class="keyword">void</span>()&gt; &gt; tasks;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">gui_shutdown_message_received</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">get_and_process_gui_message</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">gui_thread</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(!gui_shutdown_message_received())</span><br><span class="line">  &#123;</span><br><span class="line">    get_and_process_gui_message();</span><br><span class="line">    <span class="built_in">std</span>::packaged_task&lt;<span class="keyword">void</span>()&gt; task;</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lk</span><span class="params">(m)</span></span>;</span><br><span class="line">      <span class="keyword">if</span>(tasks.empty())</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">      task=<span class="built_in">std</span>::<span class="built_in">move</span>(tasks.front());</span><br><span class="line">      tasks.pop_front();</span><br><span class="line">    &#125;</span><br><span class="line">    task();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">std</span>::thread <span class="title">gui_bg_thread</span><span class="params">(gui_thread)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Func&gt;</span><br><span class="line"><span class="function"><span class="built_in">std</span>::<span class="built_in">future</span>&lt;<span class="keyword">void</span>&gt; <span class="title">post_task_for_gui_thread</span><span class="params">(Func f)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="function"><span class="built_in">std</span>::packaged_task&lt;<span class="title">void</span><span class="params">()</span>&gt; <span class="title">task</span><span class="params">(f)</span></span>;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">future</span>&lt;<span class="keyword">void</span>&gt; res=task.get_future();</span><br><span class="line">  <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lk</span><span class="params">(m)</span></span>;</span><br><span class="line">  tasks.push_back(<span class="built_in">std</span>::<span class="built_in">move</span>(task));</span><br><span class="line">  <span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用promises"><a href="#使用promises" class="headerlink" title="使用promises"></a>使用promises</h2><p><code>std::promise&lt;T&gt;</code>提供设定值的方式，这个类型会和后面看到的<code>std::future&lt;T&gt;</code>对象相关联。一对<code>std::promise</code>/<code>std::future</code>提供了一个可行的机制：<code>future</code>可以阻塞等待线程，同时，提供数据的线程可以使用组合中的<code>promise</code>来对相关值进行设置，并将期望值的状态置为“就绪”。</p>
+<p>可以通过一个给定的<code>std::promise</code>的<code>get_future()</code>成员函数来获取与之相关的<code>std::future</code>对象，跟<code>std::packaged_task</code>的用法类似。当承诺值已经通过调用<code>set_value()</code>成员函数设置完毕，对应期望值的状态变为“就绪”，并且可用于检索已存储的值。当在设置值之前销毁<code>std::promise</code>，将会存储一个异常。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用promise解决单线程多连接问题</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;future&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">process_connections</span><span class="params">(connection_set&amp; connections)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(!done(connections))</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">for</span>(connection_iterator</span><br><span class="line">            connection=connections.<span class="built_in">begin</span>(),<span class="built_in">end</span>=connections.<span class="built_in">end</span>();</span><br><span class="line">          connection!=<span class="built_in">end</span>;</span><br><span class="line">          ++connection)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span>(connection-&gt;has_incoming_data())</span><br><span class="line">      &#123;</span><br><span class="line">        data_packet data=connection-&gt;incoming();</span><br><span class="line">        <span class="built_in">std</span>::promise&lt;payload_type&gt;&amp; p=</span><br><span class="line">            connection-&gt;get_promise(data.id);</span><br><span class="line">        p.set_value(data.payload);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span>(connection-&gt;has_outgoing_data())</span><br><span class="line">      &#123;</span><br><span class="line">        outgoing_packet data=</span><br><span class="line">            connection-&gt;top_of_outgoing_queue();</span><br><span class="line">        connection-&gt;send(data.payload);</span><br><span class="line">        data.promise.set_value(<span class="literal">true</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C/" rel="tag"># C++</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag"># 并发控制</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/22/Cpp-thread-concurrency-2nd/" rel="prev" title="C++多线程并发系列（二）">
+      <i class="fa fa-chevron-left"></i> C++多线程并发系列（二）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#等待一个事件或者其他条件"><span class="nav-number">2.</span> <span class="nav-text">等待一个事件或者其他条件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#condition-variables"><span class="nav-number">2.1.</span> <span class="nav-text">condition variables</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用future等待一次性事件"><span class="nav-number">3.</span> <span class="nav-text">使用future等待一次性事件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#后台返回任务值"><span class="nav-number">3.1.</span> <span class="nav-text">后台返回任务值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创造future的三种方式"><span class="nav-number">3.1.1.</span> <span class="nav-text">创造future的三种方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务与期望值关联"><span class="nav-number">3.2.</span> <span class="nav-text">任务与期望值关联</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用promises"><span class="nav-number">3.3.</span> <span class="nav-text">使用promises</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yuhang Jiang"
+      src="/images/ykhl.jpeg">
+  <p class="site-author-name" itemprop="name">Yuhang Jiang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jiangyuhang17" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jiangyuhang17" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:yuhangjiang17@foxmail.com" title="E-Mail → mailto:yuhangjiang17@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuhang Jiang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.7.1
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'R5P96eGyWvg68Dl6alvIqIDc-9Nh9j0Va',
+      appKey     : 'wlHLg0F6YkLalGt26FP1D6ya',
+      placeholder: "Just comment!",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
