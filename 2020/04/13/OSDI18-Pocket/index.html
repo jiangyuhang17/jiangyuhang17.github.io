@@ -21,23 +21,22 @@
     var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="题目描述和为K的子数组 给定一个整数数组和一个整数 k，你需要找到该数组中和为 k 的连续的子数组的个数。 示例 1 : 12输入:nums &#x3D; [1,1,1], k &#x3D; 2输出: 2 , [1,1] 与 [1,1] 为两种不同的情况。  解法一（滑动窗口）我的思路是采用滑动窗口的方式，将窗口的大小（即sub_size，子数组大小）从1一直增长到数组大小，测试所有窗口大小下的情">
+  <meta name="description" content="What is Serverless?Serverless Computing（无服务器计算）是云计算的一种类型。 云计算云计算，简单来说就是，通过互联网（云）分发计算服务，用户为使用的服务而付费，有以下四种主要的类型：  Infrastructure as a Service (IaaS) Platform as a Service (PaaS) Software as a Service (S">
 <meta property="og:type" content="article">
-<meta property="og:title" content="LeetCode 560. 和为K的子数组">
-<meta property="og:url" content="http://yoursite.com/2020/03/08/LeetCode-560/index.html">
+<meta property="og:title" content="Pocket - Elastic Ephemeral Storage for Serverless Analytics 论文笔记">
+<meta property="og:url" content="http://yoursite.com/2020/04/13/OSDI18-Pocket/index.html">
 <meta property="og:site_name" content="jiangyuhang17">
-<meta property="og:description" content="题目描述和为K的子数组 给定一个整数数组和一个整数 k，你需要找到该数组中和为 k 的连续的子数组的个数。 示例 1 : 12输入:nums &#x3D; [1,1,1], k &#x3D; 2输出: 2 , [1,1] 与 [1,1] 为两种不同的情况。  解法一（滑动窗口）我的思路是采用滑动窗口的方式，将窗口的大小（即sub_size，子数组大小）从1一直增长到数组大小，测试所有窗口大小下的情">
+<meta property="og:description" content="What is Serverless?Serverless Computing（无服务器计算）是云计算的一种类型。 云计算云计算，简单来说就是，通过互联网（云）分发计算服务，用户为使用的服务而付费，有以下四种主要的类型：  Infrastructure as a Service (IaaS) Platform as a Service (PaaS) Software as a Service (S">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-03-08T08:42:50.000Z">
-<meta property="article:modified_time" content="2020-03-18T15:15:58.139Z">
+<meta property="article:published_time" content="2020-04-13T14:47:00.000Z">
+<meta property="article:modified_time" content="2020-04-13T14:56:00.192Z">
 <meta property="article:author" content="Yuhang Jiang">
-<meta property="article:tag" content="LeetCode">
-<meta property="article:tag" content="ALT滑动窗口">
-<meta property="article:tag" content="ALT前缀和">
-<meta property="article:tag" content="AL哈希表">
+<meta property="article:tag" content="存储">
+<meta property="article:tag" content="云计算">
+<meta property="article:tag" content="分布式">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/2020/03/08/LeetCode-560/">
+<link rel="canonical" href="http://yoursite.com/2020/04/13/OSDI18-Pocket/">
 
 
 <script id="page-configurations">
@@ -49,7 +48,7 @@
   };
 </script>
 
-  <title>LeetCode 560. 和为K的子数组 | jiangyuhang17</title>
+  <title>Pocket - Elastic Ephemeral Storage for Serverless Analytics 论文笔记 | jiangyuhang17</title>
   
 
 
@@ -191,7 +190,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/08/LeetCode-560/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/13/OSDI18-Pocket/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/ykhl.jpeg">
@@ -204,7 +203,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          LeetCode 560. 和为K的子数组
+          Pocket - Elastic Ephemeral Storage for Serverless Analytics 论文笔记
         </h1>
 
         <div class="post-meta">
@@ -213,28 +212,22 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-03-08 16:42:50" itemprop="dateCreated datePublished" datetime="2020-03-08T16:42:50+08:00">2020-03-08</time>
+              <time title="创建时间：2020-04-13 22:47:00 / 修改时间：22:56:00" itemprop="dateCreated datePublished" datetime="2020-04-13T22:47:00+08:00">2020-04-13</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-03-18 23:15:58" itemprop="dateModified" datetime="2020-03-18T23:15:58+08:00">2020-03-18</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+                  <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
                 </span>
             </span>
 
           
-            <span id="/2020/03/08/LeetCode-560/" class="post-meta-item leancloud_visitors" data-flag-title="LeetCode 560. 和为K的子数组" title="阅读次数">
+            <span id="/2020/04/13/OSDI18-Pocket/" class="post-meta-item leancloud_visitors" data-flag-title="Pocket - Elastic Ephemeral Storage for Serverless Analytics 论文笔记" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -249,8 +242,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/03/08/LeetCode-560/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/08/LeetCode-560/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/04/13/OSDI18-Pocket/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/13/OSDI18-Pocket/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -265,19 +258,39 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h2><p><a href="https://leetcode-cn.com/problems/subarray-sum-equals-k/" target="_blank" rel="noopener">和为K的子数组</a></p>
-<p>给定一个整数数组和一个整数 k，你需要找到该数组中和为 k 的连续的子数组的个数。</p>
-<p>示例 1 :</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">输入:nums &#x3D; [1,1,1], k &#x3D; 2</span><br><span class="line">输出: 2 , [1,1] 与 [1,1] 为两种不同的情况。</span><br></pre></td></tr></table></figure>
-
-<h2 id="解法一（滑动窗口）"><a href="#解法一（滑动窗口）" class="headerlink" title="解法一（滑动窗口）"></a>解法一（滑动窗口）</h2><p>我的思路是采用滑动窗口的方式，将窗口的大小（即sub_size，子数组大小）从1一直增长到数组大小，测试所有窗口大小下的情况，时间复杂度为 O(n<sup>2</sup>)。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">subarraySum</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">size</span> = nums.<span class="built_in">size</span>(), count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> sub_size = <span class="number">1</span>; sub_size &lt;= <span class="built_in">size</span>; sub_size++) &#123;</span><br><span class="line">      <span class="keyword">int</span> windows_sum = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sub_size; i++) &#123;</span><br><span class="line">        windows_sum += nums[i];</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (windows_sum == k)</span><br><span class="line">        count++;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> j = sub_size; j &lt; <span class="built_in">size</span>; j++) &#123;</span><br><span class="line">        windows_sum += nums[j] - nums[j - sub_size];</span><br><span class="line">        <span class="keyword">if</span> (windows_sum == k)</span><br><span class="line">          count++;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> count;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<h2 id="解法二（哈希表）"><a href="#解法二（哈希表）" class="headerlink" title="解法二（哈希表）"></a>解法二（哈希表）</h2><p>解法二是LeetCode官方给出的解法——<a href="https://leetcode-cn.com/problems/subarray-sum-equals-k/solution/he-wei-kde-zi-shu-zu-by-leetcode/" target="_blank" rel="noopener">采用哈希表</a>，算法的时间复杂度为O(n)。</p>
-<p>思想是：如果 sum[j] - sum[i] = k，则索引i和j之间的元素和为k；而 sum[j] - k = sum[i]也是一样的意思。</p>
-<p>我们用哈希表去依次记录从0一直到size - 1的累加和，以及累加和出现的次数。每次算得一个位置的累加和sum，就判断 sum - k 的结果是否在hash表中，以及出现的次数，这就表示现在求得的累加和与之前某个位置的累加和之间的元素和为K，用count记录得到最终结果。</p>
-<p><strong>注意</strong>哈希表一开始要 <code>map.insert({0, 1});</code>，这步不能忘了。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">subarraySum</span><span class="params">(<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">unordered_map</span>&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; <span class="built_in">map</span>;</span><br><span class="line">    <span class="built_in">map</span>.insert(&#123;<span class="number">0</span>, <span class="number">1</span>&#125;);</span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">size</span> = nums.<span class="built_in">size</span>(), sum = <span class="number">0</span>, count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="built_in">size</span>; i++) &#123;</span><br><span class="line">      sum += nums[i];</span><br><span class="line">      <span class="keyword">if</span> (<span class="built_in">map</span>.<span class="built_in">find</span>(sum - k) != <span class="built_in">map</span>.<span class="built_in">end</span>())</span><br><span class="line">        count += <span class="built_in">map</span>.<span class="built_in">find</span>(sum - k)-&gt;second;</span><br><span class="line">      <span class="keyword">if</span> (<span class="built_in">map</span>.<span class="built_in">find</span>(sum) != <span class="built_in">map</span>.<span class="built_in">end</span>())</span><br><span class="line">        <span class="built_in">map</span>.<span class="built_in">find</span>(sum)-&gt;second++;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">map</span>.insert(&#123;sum, <span class="number">1</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> count;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+        <h1 id="What-is-Serverless"><a href="#What-is-Serverless" class="headerlink" title="What is Serverless?"></a>What is Serverless?</h1><p>Serverless Computing（无服务器计算）是云计算的一种类型。</p>
+<h2 id="云计算"><a href="#云计算" class="headerlink" title="云计算"></a>云计算</h2><p>云计算，简单来说就是，通过互联网（云）分发计算服务，用户为使用的服务而付费，有以下四种主要的类型：</p>
+<ul>
+<li>Infrastructure as a Service (IaaS)</li>
+<li>Platform as a Service (PaaS)</li>
+<li>Software as a Service (SaaS)</li>
+<li>Serverless</li>
+</ul>
+<h2 id="无服务器计算"><a href="#无服务器计算" class="headerlink" title="无服务器计算"></a>无服务器计算</h2><p>Serverless Computing有以下四个特点：</p>
+<ul>
+<li><p>免除用户自己管理服务器的麻烦，与服务器有关的概念都由Serverless云架构处理（Serverless，即服务器从你的概念里消失了）</p>
+</li>
+<li><p>根据需要提供计算资源，自动扩展站点</p>
+</li>
+<li><p>资源被更加精确地分配，而传统的云计算需要提前分配更多资源以便在需要的时候可用</p>
+</li>
+<li><p>Serverless会自动适应资源使用的波动（即Elastic），用户只需要为实时使用的资源付费，但是这些的波动会使计费无法预测</p>
+</li>
+</ul>
+<p>关于Serverless更详细的描述可以参考 <a href="https://northstack.com/cloud-computing-vs-serverless/" target="_blank" rel="noopener">What’s the Difference Between Cloud Computing and Serverless?</a></p>
+<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="Serverless与分析负载"><a href="#Serverless与分析负载" class="headerlink" title="Serverless与分析负载"></a>Serverless与分析负载</h2><p>Serverless的弹性和计费优势使其适用于数据密集型应用，比如交互式分析。一些架构在Serverless平台上发起大量细粒度任务，在分析负载中利用所有可用的并行性，并获得接近实时的性能。</p>
+<h2 id="在Serverless下的数据共享"><a href="#在Serverless下的数据共享" class="headerlink" title="在Serverless下的数据共享"></a>在Serverless下的数据共享</h2><p>分析负载一般包含多阶段，需要在不同阶段的任务之间共享状态和数据（比如shuffling）。大多数分析框架通过在每个节点上长期运行的架构代理将中间数据缓存在本地，使得不同阶段的任务可以通过网络交换中间数据。</p>
+<p>但是，在Serverless部署下，没有架构代理将中间数据缓存在本地，甚至无法控制任务的调度和放置，使得任务之间的通信很困难。所以Serverless应用通过使用远程存储服务（对象存储、数据库、分布式缓存）来进行数据共享。</p>
+<p>但是现有的存储服务不适合在Serverless应用中共享短暂中间数据（Ephemeral data）。文件系统、对象存储和NoSQL数据库优先提供可持久的、长期的、高可用的存储，而不是对性能和代价的优化。分布式KV存储提供高性能，但是给了用户管理存储集群规模和配置的负担（涉及选择提供合适的计算、存储和网络资源）。</p>
+<p>不同存储技术（如DRAM，NVM，Flash和HDD）增加了找到关于性能和代价的最佳集群配置的复杂度。但是存储技术的选择很关键，因为作业可能表现出不同的存储延迟，带宽和容量要求，并且不同的存储技术在性能特征和成本方面存在很大差异。每种资源配置都会导致不同的性能和成本，为一个工作找到高效的存储分配并非易事，而且对于多个工作来说变得更加复杂。</p>
+<h2 id="提出Pocket"><a href="#提出Pocket" class="headerlink" title="提出Pocket"></a>提出Pocket</h2><p>文章提出了Pocket，一个为在Serverless分析负载中高效共享数据而设计的分布式数据存储。Pocket为任意大小数据集、自动资源扩展和跨多存储层的智能数据放置，提供了高吞吐和低延迟。</p>
+<p>Pocket的独特属性来自于通过三个平面严格划分责任：</p>
+<ul>
+<li>control plane —— 为负载决定数据放置策略</li>
+<li>metadata plane —— 为管理分布式数据放置</li>
+<li>‘dumb’ data plane —— ‘dumb’即忽略元数据，负责存储数据</li>
+</ul>
+<p>Pocket根据当前负载以细资源和时间粒度独立地缩放所有三个平面。Pocket使用启发式算法，在考虑负载特征的情况下，分配正确的存储介质、容量、带宽和CPU资源，获得高效的代价和性能。存储API公开了简单的I/O操作，以实现亚秒级的访问延迟。我们倾向于Pocket被云提供者管理，提供给使用者按使用计费的代价模型。</p>
 
     </div>
 
@@ -287,10 +300,9 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/LeetCode/" rel="tag"># LeetCode</a>
-              <a href="/tags/ALT%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/" rel="tag"># ALT滑动窗口</a>
-              <a href="/tags/ALT%E5%89%8D%E7%BC%80%E5%92%8C/" rel="tag"># ALT前缀和</a>
-              <a href="/tags/AL%E5%93%88%E5%B8%8C%E8%A1%A8/" rel="tag"># AL哈希表</a>
+              <a href="/tags/%E5%AD%98%E5%82%A8/" rel="tag"># 存储</a>
+              <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag"># 云计算</a>
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
           </div>
 
         
@@ -299,13 +311,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/02/26/hello-world/" rel="prev" title="Hello World">
-      <i class="fa fa-chevron-left"></i> Hello World
+    <a href="/2020/03/29/Cpp-thread-concurrency-3rd/" rel="prev" title="C++多线程并发系列（三）">
+      <i class="fa fa-chevron-left"></i> C++多线程并发系列（三）
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/03/09/LeetCode-713/" rel="next" title="LeetCode 713. 乘积小于K的子数组">
-      LeetCode 713. 乘积小于K的子数组 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -366,7 +375,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#题目描述"><span class="nav-number">1.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解法一（滑动窗口）"><span class="nav-number">2.</span> <span class="nav-text">解法一（滑动窗口）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解法二（哈希表）"><span class="nav-number">3.</span> <span class="nav-text">解法二（哈希表）</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#What-is-Serverless"><span class="nav-number">1.</span> <span class="nav-text">What is Serverless?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#云计算"><span class="nav-number">1.1.</span> <span class="nav-text">云计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#无服务器计算"><span class="nav-number">1.2.</span> <span class="nav-text">无服务器计算</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">2.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Serverless与分析负载"><span class="nav-number">2.1.</span> <span class="nav-text">Serverless与分析负载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在Serverless下的数据共享"><span class="nav-number">2.2.</span> <span class="nav-text">在Serverless下的数据共享</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提出Pocket"><span class="nav-number">2.3.</span> <span class="nav-text">提出Pocket</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
