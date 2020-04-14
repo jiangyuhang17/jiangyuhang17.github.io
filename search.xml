@@ -2,7 +2,7 @@
 <search>
   <entry>
     <title>IX - A Protected Dataplane Operating System for High Throughput and Low Latency 论文笔记</title>
-    <url>/2020/04/13/OSDI14-IX/</url>
+    <url>/2020/04/14/OSDI14-IX/</url>
     <content><![CDATA[<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="用户态网络栈"><a href="#用户态网络栈" class="headerlink" title="用户态网络栈"></a>用户态网络栈</h2><p>传统观点认为，积极的网络要求，例如小消息的高数据包速率和微秒级的尾端延迟，最好在用户态网络栈中进行处理。用户态网络栈消除了上下文切换的开销，但是并没有消除高数据包速率和低延迟之间的艰难权衡；同时也会缺乏保护，用户程序的bugs会污染网络栈。</p>
 <h2 id="IX简介"><a href="#IX简介" class="headerlink" title="IX简介"></a>IX简介</h2><p>IX，一个<code>data plane</code>操作系统，旨在达到高吞吐量，低延迟，强大的保护和资源效率这四个权衡。IX使用硬件虚拟化来分离<code>control plane</code>（内核的管理和调度功能）和<code>data plane</code>（网络处理）。</p>
 <p>IX利用Dune和虚拟化硬件以不同的保护级别运行<code>data plane</code>内核和应用程序，并将<code>control plane</code>与<code>data plane</code>隔离。 在我们的实现中，<code>control plane</code>是完整的Linux内核，<code>data plane</code>在专用的硬件线程上作为受保护的基于库的操作系统运行。</p>
@@ -11,7 +11,7 @@
 <p>IX演示了通过重新访问网络API并利用现代NIC和多核芯片的优势，我们可以设计出实现高吞吐量和低延迟以及强大的保护和资源效率的系统。它还表明，通过将性能关键型IO功能的较小子集与内核的其余部分分开，我们可以构建与众不同的IO系统，并获得较大的性能提升，同时保持与由OS提供的庞大的API和服务的兼容性。</p>
 <p>我们证明了IX在吞吐量和端到端延迟方面均明显优于Linux和最新的用户态网络栈。</p>
 <p>IX的两点贡献：通过虚拟化实现保护和直接硬件访问；低延迟和高吞吐量的执行模型。</p>
-<h1 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h1><p><img src="./pic/osdi14-IX-1.png" alt="pic"></p>
+<h1 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h1><p><img src="/.com//osdi14-IX-1.png" alt="pic"></p>
 <h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>图1(a)显示了IX架构，重点是<code>control plane</code>和多个<code>data plane</code>之间的分离。</p>
 <p>IX的<code>control plane</code>由完整的Linux内核和IXCP（用户级程序）组成。 Linux内核初始化PCIe设备（例如NIC），并提供用于向<code>data plane</code>分配资源的基本机制，包括core，内存和网络队列。同样重要的是，Linux提供了与多种应用程序兼容所必需的系统调用和服务，例如文件系统和信号支持。IXCP监视资源使用情况和<code>data plane</code>性能，并实施资源分配策略。</p>
 <p>我们在VMX root ring 0中运行Linux内核，该模式通常用于在虚拟化系统中允许<code>hypervisor</code>。我们在Linux中使用Dune模块，使<code>data plane</code>能够在VMX not-root ring 0中作为特定于应用程序的OS运行，该模式通常用于在虚拟化系统中运行guest内核。像往常一样，应用程序在VMX ring 3中运行。 这种方法为<code>data plane</code>提供了对硬件功能（如页表和异常）的直接访问，以及对NIC的直通访问。此外，它在<code>control plane</code>，<code>data plane</code>和不受信任的应用程序代码之间提供了全面的三向保护。</p>
