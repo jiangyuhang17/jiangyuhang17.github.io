@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="_h37qg0FUUvECrT0kIVe8kSBPmCPVbu1Tof6hipA14o">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Introduction跨设备资源共享提供了利用远程设备资源的能力。这样就能通过访问大量异构设备（如智能手机、可穿戴设备、智能电视），扩展移动设备的能力，提供多设备服务。但是现有的资源共享机制面临三个问题：  共享的资源覆盖范围有限  涉及使用多个设备的复杂编程工作  现有方案无法优化任务的放置，因此在低速无线网络上运行时会遭受损失   文章提出DynaMix，这是一种新颖的框架，可实现有效的跨设">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记">
+<meta property="og:url" content="http://yoursite.com/2020/04/14/ATC18-DynaMix/index.html">
+<meta property="og:site_name" content="jiangyuhang17">
+<meta property="og:description" content="Introduction跨设备资源共享提供了利用远程设备资源的能力。这样就能通过访问大量异构设备（如智能手机、可穿戴设备、智能电视），扩展移动设备的能力，提供多设备服务。但是现有的资源共享机制面临三个问题：  共享的资源覆盖范围有限  涉及使用多个设备的复杂编程工作  现有方案无法优化任务的放置，因此在低速无线网络上运行时会遭受损失   文章提出DynaMix，这是一种新颖的框架，可实现有效的跨设">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-14T10:20:33.000Z">
+<meta property="article:modified_time" content="2020-04-14T10:36:08.240Z">
+<meta property="article:author" content="Yuhang Jiang">
+<meta property="article:tag" content="云计算">
+<meta property="article:tag" content="调度">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/14/ATC18-DynaMix/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记 | jiangyuhang17</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">jiangyuhang17</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jiangyuhang17" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/14/ATC18-DynaMix/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-04-14 18:20:33 / 修改时间：18:36:08" itemprop="dateCreated datePublished" datetime="2020-04-14T18:20:33+08:00">2020-04-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/04/14/ATC18-DynaMix/" class="post-meta-item leancloud_visitors" data-flag-title="DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/14/ATC18-DynaMix/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/14/ATC18-DynaMix/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>跨设备资源共享提供了利用远程设备资源的能力。这样就能通过访问大量异构设备（如智能手机、可穿戴设备、智能电视），扩展移动设备的能力，提供多设备服务。但是现有的资源共享机制面临三个问题：</p>
+<ul>
+<li><p>共享的资源覆盖范围有限</p>
+</li>
+<li><p>涉及使用多个设备的复杂编程工作</p>
+</li>
+<li><p>现有方案无法优化任务的放置，因此在低速无线网络上运行时会遭受损失</p>
+</li>
+</ul>
+<p>文章提出DynaMix，这是一种新颖的框架，可实现有效的跨设备资源共享。</p>
+<ul>
+<li><p>首先，DynaMix使用分布式共享内存（DSM）和IO请求转发来完全集成各种资源。DSM集成了CPU和内存，而IO请求转发集成了IO资源。</p>
+</li>
+<li><p>其次，由于DSM和IO请求转发支持在应用程序级别以下的低级资源共享，因此DynaMix不需要应用程序知道多个设备，从而实现了良好的可编程性。</p>
+</li>
+<li><p>第三，DynaMix通过监视每台设备的资源使用情况和设备间的网络使用情况来最大程度地减少设备间的通信，从而动态地在设备之间重新分配任务； 此外，DynaMix通过监视远程设备的连通性并获取应用程序状态的检查点来支持远程设备的无缝即插即用。</p>
+</li>
+</ul>
+<h1 id="现有方案的局限性"><a href="#现有方案的局限性" class="headerlink" title="现有方案的局限性"></a>现有方案的局限性</h1><h2 id="IO请求转发"><a href="#IO请求转发" class="headerlink" title="IO请求转发"></a>IO请求转发</h2><p>IO转发是一种利用远程IO资源的方式，通过转发IO请求到目的设备，然后目的设备代表请求设备访问请求的资源。请求转发方案可以在不同层（例如，内核，平台，用户）中转发IO请求。</p>
+<p>但是，现有请求转发方案的适用性受到如下限制。首先，它们仅支持用于IO资源的共享。接下来，他们需要精心设计的抽象层来支持单设备应用程序。此外，除非他们以优化的任务分配访问资源，否则它们可能会承受严重的网络开销。（将视频解码的工作放到播放设备可以减少网络数据的传输）。</p>
+<h1 id="Dynamix-Framework"><a href="#Dynamix-Framework" class="headerlink" title="Dynamix Framework"></a>Dynamix Framework</h1><ul>
+<li><p>首先，为了减轻程序员的负担，DynaMix不需要任何特殊的编程概念，也不需要特殊的API，只有基础内存一致性模型除外。程序员可以在具有多线程库的单个设备上编写普通的多线程程序，而无需担心远程资源。</p>
+</li>
+<li><p>其次，用户可以选择所需的资源以在运行时执行DynaMix应用程序。 DynaMix框架可动态集成所选资源，并构建一个称为“DynaMix设备”的虚拟设备。</p>
+</li>
+<li><p>第三，DynaMix检测网络流量并自动在设备之间重新分配任务，以最大程度地减少网络开销。在DynaMix设备中，DynaMix应用程序的任务（即线程）可以自由访问远程资源，也可以迁移以实现最佳任务重新分配。</p>
+</li>
+</ul>
+<p>Dynamix Framework 有两个基础操作模型，并需要为每个设备安装两个软件，资源集成器和线程迁移器：</p>
+<h2 id="远程资源集成"><a href="#远程资源集成" class="headerlink" title="远程资源集成"></a>远程资源集成</h2><p>安装在每台设备上的资源集成器将共同应用DSM模型和内核级IO请求转发，以集成计算（例如CPU，内存）和IO（例如显示，存储）资源。这种机制使DynaMix能够满足理想的资源共享的两个设计目标：单设备编程模型和高资源覆盖率。</p>
+<p>资源集成器分三个步骤执行集成。首先，资源集成器收集由远程资源集成器广播的远程资源的信息（例如，CPU频率，存储器大小，IO类型），并使资源可用于用户应用程序。其次，如果应用程序尝试使用远程资源，则资源集成器会将请求转发给目标资源集成器。第三，目标资源集成器通过共享内存将计算结果交付给应用程序，或者通过转发将IO结果交付给应用程序。</p>
+<h2 id="资源感知的任务重新分配"><a href="#资源感知的任务重新分配" class="headerlink" title="资源感知的任务重新分配"></a>资源感知的任务重新分配</h2><p>仅通过IO请求转发，DynaMix会引起严重的设备间通信。 因此，DynaMix通过将线程自适应地迁移到最佳设备来应用资源感知的任务重新分配机制，以最大程度地减少整个设备间的通信量。此机制满足资源感知任务重新分配的设计目标。</p>
+<p>资源集成器和线程迁移器共同协作以启用任务重新分配。首先，资源集成器监视每个线程的资源使用情况（例如CPU，网络）以检测可能的资源竞争。 其次，在检测到争用时，线程迁移器权衡各种线程分配方案，并找到最佳方案。 第三，线程迁移器通过将线程的执行上下文传递到目标设备来迁移线程。</p>
+<h1 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h1><h2 id="资源集成器"><a href="#资源集成器" class="headerlink" title="资源集成器"></a>资源集成器</h2><p>资源集成器由三个组件组成，DSM引擎、IO引擎、设备状态监视器</p>
+<h3 id="DSM引擎"><a href="#DSM引擎" class="headerlink" title="DSM引擎"></a>DSM引擎</h3><p>DSM引擎通过DSM的方式，将多个设备的内存区域集成到单个内存空间中。DSM引擎在收到内存访问请求后，要么传递其本地内存数据，要么将请求转发到拥有该数据的目标DSM引擎。它还与主守护程序一起协调这些通信，以实现全局一致的内存管理。</p>
+<p>DSM引擎的三种性能优化。首先，它采用延迟释放一致性模型来安全地延迟获取释放块中的内存同步。其次，它在检测到顺序的内存访问模式时主动执行内存预取。第三，它使用页面级一致性块来减少一致性开销。</p>
+<h3 id="IO引擎"><a href="#IO引擎" class="headerlink" title="IO引擎"></a>IO引擎</h3><p>IO引擎通过内核级请求转发来管理对本地和远程IO资源的访问。为了将来自主机的请求转发到远程目标设备，I O引擎拦截与IO相关的系统调用（例如，open，read，write，ioctl），并将其与输入参数一起传递给远程设备。然后，远程设备执行转发的请求，并将结果返回给主机。</p>
+<p>为了访问远程存储上的文件，IO引擎与主守护程序一起使用，该守护程序保留包含文件元数据的文件目录。因此，加入DynaMix设备的设备应将其文件元数据信息上传到共享文件目录。在收到文件访问请求后，IO引擎首先检查本地文件目录。如果该文件不存在，则IO引擎会要求主守护程序在共享文件目录中找到该位置，并将请求转发给所有者的设备。</p>
+<h3 id="设备状态监视器"><a href="#设备状态监视器" class="headerlink" title="设备状态监视器"></a>设备状态监视器</h3><p>设备状态监视器会定期收集各种系统信息（例如，每个线程的CPU利用率，网络阻塞时间）以检测CPU和网络的占用量。当CPU被充分利用但每个线程的CPU利用率较低而又不存在其他瓶颈时（例如，没有IO等待），它可以检测到CPU争用。另一方面，当由于远程IO访问或内存同步而导致的停顿时间超过预定义的阈值（例如，在我们的环境中为30％）时，它会检测到网络争用。在检测到此类更改后，设备状态监视器会立即通知主守护程序启动线程重新分配。</p>
+<h2 id="线程迁移器"><a href="#线程迁移器" class="headerlink" title="线程迁移器"></a>线程迁移器</h2><p>线程迁移器由四个组件组成，线程管理器、迁移选择器、迁移引擎、心跳通讯器</p>
+<h3 id="线程管理器"><a href="#线程管理器" class="headerlink" title="线程管理器"></a>线程管理器</h3><p>线程管理器维护正在运行的线程的各种信息，例如执行状态，资源使用情况和锁定。在资源争用中，线程管理器计算线程的数据通信（即线程到线程和线程到资源），并将结果发送到迁移选择器，该选择器确定进行迁移的最佳对象及其目标设备。线程管理器还实现了内核级的锁，以使不同设备之间的线程同步。</p>
+<h3 id="迁移选择器"><a href="#迁移选择器" class="headerlink" title="迁移选择器"></a>迁移选择器</h3><p>利用线程管理器提供的信息，迁移选择器可以确定迁移的最佳线程及其目标设备，并将信息作为迁移建议通知给主守护程序。</p>
+<p>迁移选择器首先将紧密耦合的线程分组为一个线程组，这是最小迁移单元。这种分组简化了选择过程，并防止了不必要的迁移启动。如果线程之间的线程间通信量大于预定义的阈值，则该算法会将线程设置为线程组。接下来，它以使网络开销减少，网络增益最大化的方式找到最佳的线程组及其目标设备。请注意，在特定时间段内，选定的线程组被暂时排除在下一个目标选择中，以避免对同一组进行频繁的迁移调用。使用指数补偿延长时间。</p>
+<h3 id="迁移引擎"><a href="#迁移引擎" class="headerlink" title="迁移引擎"></a>迁移引擎</h3><p>在迁移选择器确定了要迁移的线程（即线程组）及其目标设备之后，迁移引擎最终将执行线程迁移。</p>
+<p>DynaMix通过采用线程克隆和实时迁移来支持低开销的迁移。通过在短时间内传输基本页面，可以最大程度地减少线程在迁移期间的暂停时间。</p>
+<h3 id="心跳通讯器"><a href="#心跳通讯器" class="headerlink" title="心跳通讯器"></a>心跳通讯器</h3><p>心跳通信器定期交换心跳消息，以检查设备连接并共享其资源状，可以从心跳消息的往返延迟估计设备间网络延迟。然后，资源状态信息将传递到迁移选择器。</p>
+<p>心跳通讯器可以检测到哪个远程设备加入或离开了DynaMix设备。对于新加入的设备，其心跳通信器会广播心跳消息。接收到消息后，主守护程序会在DynaMix设备中注册新设备。心跳通信器还通过监视连接性（例如，丢包数）来检测不稳定的设备。如果设备变得不稳定，则心跳通信器会通知主守护程序开始将设备中的线程迁移到更稳定的设备，以避免可能导致整体进度损失的线程恢复。如果意外断开连接，主心跳通信器会通知线程管理器从最新检查点（第4.2.1节）中恢复。</p>
+<h2 id="Master-Daemon"><a href="#Master-Daemon" class="headerlink" title="Master Daemon"></a>Master Daemon</h2><p>DynaMix设备具有单个主守护程序，该守护程序管理各种系统状态（例如线程，锁，内存页面，文件）以协调DynaMix操作和组件。主守护程序在无故障的主设备（用户发起应用的设备）上运行，由三个组件组成：线程目录，页面目录和文件目录。</p>
+<h3 id="线程目录"><a href="#线程目录" class="headerlink" title="线程目录"></a>线程目录</h3><p>线程目录管理线程的全局状态（例如线程位置），并仲裁线程迁移过程。它从设备状态监视器收集资源争用信号，并从迁移选择器收集迁移建议。在收到建议后，线程目录选择最佳的迁移线程组及其目的地，以实现最高的网络收益，然后管理迁移引擎以执行设计的迁移。</p>
+<p>线程目录还维护锁的信息（例如，当前所有者，状态）。要获取锁，每个设备都应查询主设备的线程目录。为了减少锁获取的开销，线程目录可以推测性地将锁授予频繁持有锁设备；当另一台设备尝试获取该锁时，线程目录将收回指定的锁。</p>
+<h3 id="页面目录"><a href="#页面目录" class="headerlink" title="页面目录"></a>页面目录</h3><p>页面目录管理内存页面的共享状态，以协调内存同步操作。当设备由于缺页而发送远程读取请求时，页面目录将查询一个共享器表，该表保留每个页面的共享器设备列表。 然后，它将请求中继到共享设备之一，共享设备会将页面传递到请求设备。</p>
+<h3 id="文件目录"><a href="#文件目录" class="headerlink" title="文件目录"></a>文件目录</h3><p>文件目录为全局一致的文件视图管理文件元数据和共享文件的物理位置。 每当新设备加入DynaMix设备或设备更新元数据时，主守护程序都会更新其文件目录，然后将更新后的信息通知其他设备。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/" rel="tag"># 云计算</a>
+              <a href="/tags/%E8%B0%83%E5%BA%A6/" rel="tag"># 调度</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/14/OSDI14-IX/" rel="prev" title="IX - A Protected Dataplane Operating System for High Throughput and Low Latency 论文笔记">
+      <i class="fa fa-chevron-left"></i> IX - A Protected Dataplane Operating System for High Throughput and Low Latency 论文笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#现有方案的局限性"><span class="nav-number">2.</span> <span class="nav-text">现有方案的局限性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#IO请求转发"><span class="nav-number">2.1.</span> <span class="nav-text">IO请求转发</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Dynamix-Framework"><span class="nav-number">3.</span> <span class="nav-text">Dynamix Framework</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#远程资源集成"><span class="nav-number">3.1.</span> <span class="nav-text">远程资源集成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源感知的任务重新分配"><span class="nav-number">3.2.</span> <span class="nav-text">资源感知的任务重新分配</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Implementation"><span class="nav-number">4.</span> <span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#资源集成器"><span class="nav-number">4.1.</span> <span class="nav-text">资源集成器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DSM引擎"><span class="nav-number">4.1.1.</span> <span class="nav-text">DSM引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IO引擎"><span class="nav-number">4.1.2.</span> <span class="nav-text">IO引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设备状态监视器"><span class="nav-number">4.1.3.</span> <span class="nav-text">设备状态监视器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程迁移器"><span class="nav-number">4.2.</span> <span class="nav-text">线程迁移器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#线程管理器"><span class="nav-number">4.2.1.</span> <span class="nav-text">线程管理器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迁移选择器"><span class="nav-number">4.2.2.</span> <span class="nav-text">迁移选择器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迁移引擎"><span class="nav-number">4.2.3.</span> <span class="nav-text">迁移引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#心跳通讯器"><span class="nav-number">4.2.4.</span> <span class="nav-text">心跳通讯器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-Daemon"><span class="nav-number">4.3.</span> <span class="nav-text">Master Daemon</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#线程目录"><span class="nav-number">4.3.1.</span> <span class="nav-text">线程目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#页面目录"><span class="nav-number">4.3.2.</span> <span class="nav-text">页面目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件目录"><span class="nav-number">4.3.3.</span> <span class="nav-text">文件目录</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yuhang Jiang"
+      src="/images/ykhl.jpeg">
+  <p class="site-author-name" itemprop="name">Yuhang Jiang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jiangyuhang17" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jiangyuhang17" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:yuhangjiang17@foxmail.com" title="E-Mail → mailto:yuhangjiang17@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuhang Jiang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.7.1
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'R5P96eGyWvg68Dl6alvIqIDc-9Nh9j0Va',
+      appKey     : 'wlHLg0F6YkLalGt26FP1D6ya',
+      placeholder: "Just comment!",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
