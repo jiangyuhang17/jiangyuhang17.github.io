@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="_h37qg0FUUvECrT0kIVe8kSBPmCPVbu1Tof6hipA14o">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="何谓 SocketSocket 是利用标准 UNIX file descriptors（文件描述符）与其它程序沟通的一种方式。可以用一般的read()与write()调用通过socket进行通讯，但是send()与recv()让你能对数据传输有更多的控制权。 一般的 socket 只能读取传输层以上（不含）的数据， raw socket 一般用在设计 network sniffer，可以让应用程序">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Beej&#39;s Guide to Network Programming 读书笔记（上）">
+<meta property="og:url" content="http://yoursite.com/2020/04/15/Beejs-Guide-to-Network-Programming/index.html">
+<meta property="og:site_name" content="jiangyuhang17">
+<meta property="og:description" content="何谓 SocketSocket 是利用标准 UNIX file descriptors（文件描述符）与其它程序沟通的一种方式。可以用一般的read()与write()调用通过socket进行通讯，但是send()与recv()让你能对数据传输有更多的控制权。 一般的 socket 只能读取传输层以上（不含）的数据， raw socket 一般用在设计 network sniffer，可以让应用程序">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-15T15:00:11.000Z">
+<meta property="article:modified_time" content="2020-04-16T10:01:11.214Z">
+<meta property="article:author" content="Yuhang Jiang">
+<meta property="article:tag" content="网络编程">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/15/Beejs-Guide-to-Network-Programming/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Beej's Guide to Network Programming 读书笔记（上） | jiangyuhang17</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">jiangyuhang17</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jiangyuhang17" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/Beejs-Guide-to-Network-Programming/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Beej's Guide to Network Programming 读书笔记（上）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-15 23:00:11" itemprop="dateCreated datePublished" datetime="2020-04-15T23:00:11+08:00">2020-04-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-16 18:01:11" itemprop="dateModified" datetime="2020-04-16T18:01:11+08:00">2020-04-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">网络编程</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/04/15/Beejs-Guide-to-Network-Programming/" class="post-meta-item leancloud_visitors" data-flag-title="Beej's Guide to Network Programming 读书笔记（上）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/15/Beejs-Guide-to-Network-Programming/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/15/Beejs-Guide-to-Network-Programming/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="何谓-Socket"><a href="#何谓-Socket" class="headerlink" title="何谓 Socket"></a>何谓 Socket</h1><p>Socket 是利用标准 UNIX file descriptors（文件描述符）与其它程序沟通的一种方式。可以用一般的<code>read()</code>与<code>write()</code>调用通过socket进行通讯，但是<code>send()</code>与<code>recv()</code>让你能对数据传输有更多的控制权。</p>
+<p>一般的 socket 只能读取传输层以上（不含）的数据， raw socket 一般用在设计 network sniffer，可以让应用程序取得网路数据包底层的数据（如 TCP 层、IP 层、数据链路层），并用以分析数据包。</p>
+<p>主要讨论两种 Internet sockets，一个是 Stream Sockets；而另一个是 Datagram Sockets，分别以<code>SOCK_STREAM</code>与<code>SOCK_DGRAM</code>来表示。</p>
+<p>为什麽你要用一个不可靠的底层协议（UDP）？有两个理由：第一个理由是速度，第二个理由还是速度。</p>
+<h1 id="结构与数据转换"><a href="#结构与数据转换" class="headerlink" title="结构与数据转换"></a>结构与数据转换</h1><h2 id="字节顺序"><a href="#字节顺序" class="headerlink" title="字节顺序"></a>字节顺序</h2><p>网络序为大端序，即数字先存储比较大那一边（高位放在左边）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Network Byte Order &lt;-&gt; Host Byte Order</span></span><br><span class="line">htons() <span class="comment">// host to network short</span></span><br><span class="line">htonl() <span class="comment">// host to network long</span></span><br><span class="line">ntohs() <span class="comment">// network to host short</span></span><br><span class="line">ntohl() <span class="comment">// network to host long</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><p><code>struct addrinfo</code>，这个数据结构是最近的发明，用来准备之后要用的 socket 地址数据结构，也用在主机名（host name）及服务名（service name）的查询。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> ai_flags; <span class="comment">// AI_PASSIVE, AI_CANONNAME等</span></span><br><span class="line">    <span class="keyword">int</span> ai_family; <span class="comment">// AF_INET, AF_INET6, AF_UNSPEC</span></span><br><span class="line">    <span class="keyword">int</span> ai_socktype; <span class="comment">// SOCK_STREAM, SOCK_DGRAM</span></span><br><span class="line">    <span class="keyword">int</span> ai_protocol; <span class="comment">// 用 0 当作 "any"</span></span><br><span class="line">    <span class="keyword">size_t</span> ai_addrlen; <span class="comment">// ai_addr 的大小， 单位是 byte</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr</span> *<span class="title">ai_addr</span>;</span> <span class="comment">// struct sockaddr_in 或 _in6</span></span><br><span class="line">    <span class="keyword">char</span> *ai_canonname; <span class="comment">// 典型的 hostname</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> *<span class="title">ai_next</span>;</span> <span class="comment">// 链表的下个节点</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>要注意的是，这是个链表，<code>ai_next</code>是指向下一个成员（element）， 可能会有多个结果让你选择。</p>
+<p><code>struct sockaddr</code>记录了很多 sockets 类型的 socket 的地址资料。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr</span> &#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> short sa_family; <span class="comment">// address family, AF_xxx</span></span><br><span class="line">    <span class="keyword">char</span> sa_data[<span class="number">14</span>]; <span class="comment">// 14 bytes of protocol address</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>sa_data</code>包含一个 socket 的目地地址与端口号。这样很不方便，因为你不会想要手动的将地址封装到<code>sa_data</code>里。</p>
+<p>为了处理<code>struct sockaddr</code>，程序设计师建立了对等平行的数据结构：<code>struct sockaddr_in</code>（in是代表internet）用在 IPv4。指向<code>struct sockaddr_in</code>的指针可以转型为指向<code>struct sockaddr</code>的指针，反之亦然。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// (IPv4 only--see struct sockaddr_in6 for IPv6)</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> &#123;</span></span><br><span class="line">    short <span class="keyword">int</span> sin_family; <span class="comment">// Address family, AF_INET</span></span><br><span class="line">    <span class="keyword">unsigned</span> short <span class="keyword">int</span> sin_port; <span class="comment">// Port number</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">in_addr</span> <span class="title">sin_addr</span>;</span> <span class="comment">// Internet address</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> sin_zero[<span class="number">8</span>]; <span class="comment">// 与 struct sockaddr 相同的大小</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// (仅限 IPv4 — Ipv6 请参考 struct in6_addr)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Internet address (a structure for historical reasons)</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">in_addr</span> &#123;</span></span><br><span class="line">    <span class="keyword">uint32_t</span> s_addr; <span class="comment">// that's a 32-bit int (4 bytes)</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>要注意的是<code>sin_zero</code>（这是用来将数据结构补足符合<code>struct sockaddr</code>的长度），应该要使用<code>memset()</code>函数将<code>sin_zero</code>整个清为零。还有<code>struct in_addr</code>和<code>sin_port</code>必须是 Network Byte Order（利用<code>htons()</code>）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// (IPv6 only--see struct sockaddr_in and struct in_addr for IPv4)</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in6</span> &#123;</span></span><br><span class="line">    <span class="keyword">u_int16_t</span> sin6_family; <span class="comment">// address family, AF_INET6</span></span><br><span class="line">    <span class="keyword">u_int16_t</span> sin6_port; <span class="comment">// port number, Network Byte Order</span></span><br><span class="line">    <span class="keyword">u_int32_t</span> sin6_flowinfo; <span class="comment">// IPv6 flow information</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">in6_addr</span> <span class="title">sin6_addr</span>;</span> <span class="comment">// IPv6 address</span></span><br><span class="line">    <span class="keyword">u_int32_t</span> sin6_scope_id; <span class="comment">// Scope ID</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">in6_addr</span> &#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> s6_addr[<span class="number">16</span>]; <span class="comment">// IPv6 address</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这个简单的<code>struct sockaddr_storage</code>是设计用来足够储存 IPv4 与 IPv6 结构的结构体。你可以在<code>ss_family</code>栏位看到地址家族，检查它是<code>AF_INET</code>或<code>AF_INET6</code>（是 IPv4 或 IPv6）。之后如果你愿意的话，你就可以将它转型为<code>struct sockaddr_in</code>或<code>struct sockaddr_in6</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_storage</span> &#123;</span></span><br><span class="line">    <span class="keyword">sa_family_t</span> ss_family; <span class="comment">// address family</span></span><br><span class="line">    <span class="comment">// all this is padding, implementation specific, ignore it:</span></span><br><span class="line">    <span class="keyword">char</span> __ss_pad1[_SS_PAD1SIZE];</span><br><span class="line">    <span class="keyword">int64_t</span> __ss_align;</span><br><span class="line">    <span class="keyword">char</span> __ss_pad2[_SS_PAD2SIZE];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="IP地址"><a href="#IP地址" class="headerlink" title="IP地址"></a>IP地址</h2><p>使用<code>inet_pton()</code>函数将 IP address 字符串格式转换成网络地址格式，并依照你指定的<code>AF_INET</code>或<code>AF_INET6</code>来决定要储存在<code>struct in_addr</code>或<code>struct in6_addr</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">sa</span>;</span> <span class="comment">// IPv4</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in6</span> <span class="title">sa6</span>;</span> <span class="comment">// IPv6</span></span><br><span class="line">inet_pton(AF_INET, <span class="string">" 192.0.2.1"</span> , &amp;(sa.sin_addr)); <span class="comment">// IPv4</span></span><br><span class="line">inet_pton(AF_INET6, <span class="string">" 2001:db8:63b3:1::3490"</span> , &amp;(sa6.sin6_addr)); <span class="comment">// IPv6</span></span><br></pre></td></tr></table></figure>
+
+<p>目前上述的代码片段还不是很可靠，因为没有错误检查。<code>inet_pton()</code>在错误时会返回-1，而若地址被搞砸了，则会返回0。所以在使用之前要检查，并确认结果是大于0的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 你有一个 struct in_addr 且你想要以数字与句号的字符串格式打印出来</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// IPv4:</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">char</span> ip4[INET_ADDRSTRLEN]; <span class="comment">// 储存 IPv4 字符串的空间</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">sa</span>;</span> <span class="comment">// pretend this is loaded with something</span></span><br><span class="line">inet_ntop(AF_INET, &amp;(sa.sin_addr), ip4, INET_ADDRSTRLEN);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">" The IPv4 address is: %s\n"</span> , ip4);</span><br><span class="line"></span><br><span class="line"><span class="comment">// IPv6:</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">char</span> ip6[INET6_ADDRSTRLEN]; <span class="comment">// 储存 IPv6 字符串的空间</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in6</span> <span class="title">sa6</span>;</span> <span class="comment">// pretend this is loaded with something</span></span><br><span class="line">inet_ntop(AF_INET6, &amp;(sa6.sin6_addr), ip6, INET6_ADDRSTRLEN);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">" The address is: %s\n"</span> , ip6);</span><br></pre></td></tr></table></figure>
+
+<h2 id="私有网络"><a href="#私有网络" class="headerlink" title="私有网络"></a>私有网络</h2><p>防火墙会用所谓的网路地址转换（NAT，Network Address Translation）的方法，将内部的 IP 地址转换为外部的 IP address。</p>
+<p>10.x.x.x 是其中一个少数保留的网路，只能用在完全无法连上 Internet 的网路，或是在防火墙的网路。一般而言，你较常见的是 10.x.x.x 及 192.168.x.x，这里的 x 是指 0-255。较少见的是 172.y.x.x，这里的 y 范围在 16 与 31 之间。</p>
+<h1 id="System-Call"><a href="#System-Call" class="headerlink" title="System Call"></a>System Call</h1><h2 id="getaddrinfo-准备开始"><a href="#getaddrinfo-准备开始" class="headerlink" title="getaddrinfo() - 准备开始"></a>getaddrinfo() - 准备开始</h2><p>它前身是你用来做 DNS 查询的<code>gethostbyname()</code>，你需要手动将资料写入<code>struct sockaddr_in</code>，并在你的调用中使用。现在有<code>getaddrinfo()</code>函数，可以帮你做许多事情，包含 DNS 与 service name 查询，并填好你所需的structs。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netdb.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getaddrinfo</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *node, <span class="comment">// 例如： " www.example.com" 或 IP</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="keyword">const</span> <span class="keyword">char</span> *service, <span class="comment">// 例如： " http" 或 port number</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="keyword">const</span> struct addrinfo *hints,</span></span></span><br><span class="line"><span class="function"><span class="params">struct addrinfo **res)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>hints</code>参数指向一个你已经填好相关资料的<code>struct addrinfo</code>。下面是一个调用示例， 如果你是一个 server， 想要在你主机上的 IP address 及 port 3490 运行 listen。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> status;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> <span class="title">hints</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> *<span class="title">servinfo</span>;</span> <span class="comment">// 将指向结果</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">memset</span>(&amp;hints, <span class="number">0</span>, <span class="keyword">sizeof</span> hints); <span class="comment">// 确保 struct 为空</span></span><br><span class="line">hints.ai_family = AF_UNSPEC; <span class="comment">// 不用管是 IPv4 或 IPv6</span></span><br><span class="line">hints.ai_socktype = SOCK_STREAM; <span class="comment">// TCP stream sockets</span></span><br><span class="line">hints.ai_flags = AI_PASSIVE; <span class="comment">// 帮我填好我的 IP</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ((status = getaddrinfo(<span class="literal">NULL</span>, <span class="string">" 3490"</span> , &amp;hints, &amp;servinfo)) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">" getaddrinfo error: %s\n"</span> , gai_strerror(status));</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// servinfo 目前指向一个或多个 struct addrinfos 的链表</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 做每件事情， 一直到你不再需要 servinfo ....</span></span><br><span class="line"></span><br><span class="line">freeaddrinfo(servinfo); <span class="comment">// 释放这个链表</span></span><br></pre></td></tr></table></figure>
+
+<p>在这里看到<code>AI_PASSIVE</code>flag；这个会告诉 <code>getaddrinfo()</code>要将我本地端的地址指定给 socket structure。 这样你就不用写固定的地址了，或者你可以将特定的地址放在<code>getaddrinfo()</code>的第一个参数中，现在写 NULL 的那个参数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">** showip.c -- 显示命令行中所给的主机 IP address</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netdb.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> <span class="title">hints</span>, *<span class="title">res</span>, *<span class="title">p</span>;</span></span><br><span class="line">    <span class="keyword">int</span> status;</span><br><span class="line">    <span class="keyword">char</span> ipstr[INET6_ADDRSTRLEN];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argc != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">" usage: showip hostname\n"</span> );</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(&amp;hints, <span class="number">0</span>, <span class="keyword">sizeof</span> hints);</span><br><span class="line">    hints.ai_family = AF_UNSPEC; <span class="comment">// AF_INET 或 AF_INET6 可以指定版本</span></span><br><span class="line">    hints.ai_socktype = SOCK_STREAM;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((status = getaddrinfo(argv[<span class="number">1</span>], <span class="literal">NULL</span>, &amp;hints, &amp;res)) != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">" getaddrinfo: %s\n"</span> , gai_strerror(status));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" IP addresses for %s:\n\n"</span> , argv[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(p = res;p != <span class="literal">NULL</span>; p = p-&gt;ai_next) &#123;</span><br><span class="line">        <span class="keyword">void</span> *addr;</span><br><span class="line">        <span class="keyword">char</span> *ipver;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 取得本身地址的指针，</span></span><br><span class="line">        <span class="comment">// 在 IPv4 与 IPv6 中的栏位不同：</span></span><br><span class="line">        <span class="keyword">if</span> (p-&gt;ai_family == AF_INET) &#123; <span class="comment">// IPv4</span></span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> *<span class="title">ipv4</span> = (<span class="title">struct</span> <span class="title">sockaddr_in</span> *)<span class="title">p</span>-&gt;<span class="title">ai_addr</span>;</span></span><br><span class="line">            addr = &amp;(ipv4-&gt;sin_addr);</span><br><span class="line">            ipver = <span class="string">" IPv4"</span> ;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123; <span class="comment">// IPv6</span></span><br><span class="line">            struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)p-&gt;ai_addr;</span><br><span class="line">            addr = &amp;(ipv6-&gt;sin6_addr);</span><br><span class="line">            ipver = <span class="string">" IPv6"</span> ;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// convert the IP to a string and print it:</span></span><br><span class="line">        inet_ntop(p-&gt;ai_family, addr, ipstr, <span class="keyword">sizeof</span> ipstr);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">" %s: %s\n"</span> , ipver, ipstr);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    freeaddrinfo(res); <span class="comment">// 释放链表</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="socket-取得-File-Descriptor"><a href="#socket-取得-File-Descriptor" class="headerlink" title="socket() - 取得 File Descriptor"></a>socket() - 取得 File Descriptor</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">socket</span><span class="params">(<span class="keyword">int</span> domain, <span class="keyword">int</span> type, <span class="keyword">int</span> protocol)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>domain</code>是<code>PF_INET</code>或<code>PF_INET6</code>（在<code>struct sockaddr_in</code>中使用<code>AF_INET</code>，而在调用<code>socket()</code>时使用 PF_INET）；<code>type</code>是<code>SOCK_STREAM</code>或<code>SOCK_DGRAM</code>；而<code>protocol</code>可以设置为0，用来帮给予的<code>type</code>选择适当的协议。 或者你可以调用 getprotobyname() 来查询你想要的协议，＂tcp＂或＂udp＂。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> s;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> <span class="title">hints</span>, *<span class="title">res</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 运行查询，假装我们已经填好 " hints" struct</span></span><br><span class="line">getaddrinfo(<span class="string">" www.example.com"</span> , <span class="string">" http"</span> , &amp;hints, &amp;res);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 你应该要对 getaddrinfo() 进行错误检查, 并走到 " res" 链表查询能用的资料，而不是假设第一笔资料就是好的</span></span><br><span class="line">s = socket(res-&gt;ai_family, res-&gt;ai_socktype, res-&gt;ai_protocol);</span><br></pre></td></tr></table></figure>
+
+<p><code>socket()</code>单纯返回一个之后的 system call 要用的 socket descriptor 给你，错误时会返回 -1，errno 全局变量会设置为该错误的值。</p>
+<h2 id="bind-－-绑定端口"><a href="#bind-－-绑定端口" class="headerlink" title="bind() － 绑定端口"></a>bind() － 绑定端口</h2><p>port number 是用来让 kernel 可以比对出进入的数据包是属于哪个 process 的 socket descriptor。一个 process 可以有多个 socket fd，绑定多个 port number。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">bind</span><span class="params">(<span class="keyword">int</span> sockfd, struct sockaddr *my_addr, <span class="keyword">int</span> addrlen)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> <span class="title">hints</span>, *<span class="title">res</span>;</span></span><br><span class="line"><span class="keyword">int</span> sockfd;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 首先， 用 getaddrinfo() 载入地址结构：</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">memset</span>(&amp;hints, <span class="number">0</span>, <span class="keyword">sizeof</span> hints);</span><br><span class="line">hints.ai_family = AF_UNSPEC; <span class="comment">// use IPv4 or IPv6, whichever</span></span><br><span class="line">hints.ai_socktype = SOCK_STREAM;</span><br><span class="line">hints.ai_flags = AI_PASSIVE; <span class="comment">// fill in my IP for me</span></span><br><span class="line"></span><br><span class="line">getaddrinfo(<span class="literal">NULL</span>, <span class="string">" 3490"</span> , &amp;hints, &amp;res);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 建立一个 socket：</span></span><br><span class="line"></span><br><span class="line">sockfd = socket(res-&gt;ai_family, res-&gt;ai_socktype, res-&gt;ai_protocol);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 socket bind 到我们传递给 getaddrinfo() 的 port：</span></span><br><span class="line"></span><br><span class="line">bind(sockfd, res-&gt;ai_addr, res-&gt;ai_addrlen);</span><br></pre></td></tr></table></figure>
+
+<p>bind() 在错误时也会返回 -1， 并将 errno 设置为该错误的值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// !!! 这 是 老 方 法 !!!</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 许多旧程序都在调用 bind() 以前手动封装 struct sockaddr_in</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> sockfd;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">my_addr</span>;</span></span><br><span class="line"></span><br><span class="line">sockfd = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">my_addr.sin_family = AF_INET;</span><br><span class="line">my_addr.sin_port = htons(MYPORT); <span class="comment">// short, network byte order</span></span><br><span class="line">my_addr.sin_addr.s_addr = inet_addr(<span class="string">" 10.12.110.57"</span> );</span><br><span class="line"><span class="built_in">memset</span>(my_addr.sin_zero, <span class="string">'\0'</span>, <span class="keyword">sizeof</span> my_addr.sin_zero);</span><br><span class="line"></span><br><span class="line">bind(sockfd, (struct sockaddr *)&amp;my_addr, <span class="keyword">sizeof</span> my_addr);</span><br></pre></td></tr></table></figure>
+
+<p>在上列的代码中， 如果你想要 bind 到你本地端的 IP address（就像上面的<code>AI_PASSIVE</code> flag），你也可以将<code>INADDR_ANY</code>指定给<code>s_addr</code>栏位。<code>INADDR_ANY</code>的 IPv6 版本是一个<code>in6addr_any</code>全局变量，它会被指定给你的<code>struct sockaddr_in6</code>的<code>sin6_addr</code>栏位。</p>
+<p><code>INADDR_ANY</code>转换过来就是 0.0.0.0，泛指本机的意思，也就是表示本机的所有 IP，因为有些机子不止一块网卡，多网卡的情况下，这个就表示所有网卡 IP 地址的意思。所以出现<code>INADDR_ANY</code>，你只需绑定<code>INADDR_ANY</code>，管理一个套接字就行，不管数据是从哪个网卡过来的，只要是绑定的端口号过来的数据，都可以接收到。</p>
+<p>你可能有注意到，有时候你试着重新运行 server，而<code>bind()</code>却失败了，它声称＂Address already in use.＂。有些连接到 socket 的连接还悬在 kernel 里面，而它占据了这个 port。你可以等待它自行清除（一分钟左右），或者在你的程序中新增代码，让它重新使用这个 port，类似这样：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> yes=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 可以跳过 " Address already in use" 错误信息</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&amp;yes,<span class="keyword">sizeof</span>(<span class="keyword">int</span>)) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">" setsockopt"</span> );</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>若你正使用<code>connect()</code>连接到远端的机器，你可以不用管 local port 是多少，你可以单纯地调用<code>connect()</code>，它会检查 socket 是否尚未绑定， 并在有需要的时候自动将 socket <code>bind()</code>到一个尚未使用的 local port。</p>
+<h2 id="connect-嘿！你好"><a href="#connect-嘿！你好" class="headerlink" title="connect() - 嘿！你好"></a>connect() - 嘿！你好</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">connect</span><span class="params">(<span class="keyword">int</span> sockfd, struct sockaddr *serv_addr, <span class="keyword">int</span> addrlen)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> <span class="title">hints</span>, *<span class="title">res</span>;</span></span><br><span class="line"><span class="keyword">int</span> sockfd;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 首先， 用 getaddrinfo() 载入 address structs：</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">memset</span>(&amp;hints, <span class="number">0</span>, <span class="keyword">sizeof</span> hints);</span><br><span class="line">hints.ai_family = AF_UNSPEC;</span><br><span class="line">hints.ai_socktype = SOCK_STREAM;</span><br><span class="line"></span><br><span class="line">getaddrinfo(<span class="string">" www.example.com"</span> , <span class="string">" 3490"</span> , &amp;hints, &amp;res);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 建立一个 socket：</span></span><br><span class="line"></span><br><span class="line">sockfd = socket(res-&gt;ai_family, res-&gt;ai_socktype, res-&gt;ai_protocol);</span><br><span class="line"></span><br><span class="line"><span class="comment">// connect!</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">connect</span>(sockfd, res-&gt;ai_addr, res-&gt;ai_addrlen);</span><br></pre></td></tr></table></figure>
+
+<p>要确定有检查<code>connect()</code>返回的值，它在错误时会返回 -1，并设定 errno 变量。</p>
+<h2 id="listen-有人会调用我吗"><a href="#listen-有人会调用我吗" class="headerlink" title="listen() - 有人会调用我吗"></a>listen() - 有人会调用我吗</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">listen</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">int</span> backlog)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>backlog</code>是进入的队列（incoming queue）中所允许的连接数目。如同往常，<code>listen()</code>会返回 -1 并在错误时设置 errno。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">如果你正在 <span class="built_in">listen</span> 进入的连接， 你会运行的 system call 顺序如下</span><br><span class="line"></span><br><span class="line">getaddrinfo();</span><br><span class="line">socket();</span><br><span class="line">bind();</span><br><span class="line"><span class="built_in">listen</span>();</span><br><span class="line"><span class="comment">/* accept() 从这里开始 */</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="accept-谢谢你的调用"><a href="#accept-谢谢你的调用" class="headerlink" title="accept() - 谢谢你的调用"></a>accept() - 谢谢你的调用</h2><p>很远的人会试着<code>connect()</code>到你的电脑正在<code>listen()</code>的 port。他们的连接会排队等待被<code>accept()</code>。你调用<code>accept()</code>，并告诉它要取得搁置的（pending）连接。它会返回专属这个连接的一个新 socket file descriptor 给你！你突然有了两个 socket file descriptor！原本的 socket file descriptor 仍然正在 listen 之后的连线，而新建立的 socket file descriptor 则是在最後要准备给<code>send()</code>与<code>recv()</code>用的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">accept</span><span class="params">(<span class="keyword">int</span> sockfd, struct sockaddr *addr, <span class="keyword">socklen_t</span> *addrlen)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>sockfd 是正在进行<code>listen()</code>的 socket descriptor。很简单，<code>addr</code>通常是一个指向 local struct<br>sockaddr_storage 的指针，是关于进来的连接将往哪里去的资料，你可以用它来得知是哪一台主机从哪一个 port 调用你的。<code>addrlen</code>是一个 local 的整数变量，应该在将它的地址传递给<code>accept()</code>以前， 将它设置为<code>sizeof(struct sockaddr_storage)</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MYPORT <span class="meta-string">" 3490"</span> <span class="comment">// 使用者将连接的 port</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BACKLOG 10 <span class="comment">// 在队列中可以有多少个连接在等待</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_storage</span> <span class="title">their_addr</span>;</span></span><br><span class="line">    <span class="keyword">socklen_t</span> addr_size;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> <span class="title">hints</span>, *<span class="title">res</span>;</span></span><br><span class="line">    <span class="keyword">int</span> sockfd, new_fd;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// !! 不要忘了帮这些调用做错误检查 !!</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 首先， 使用 getaddrinfo() 载入 address struct：</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(&amp;hints, <span class="number">0</span>, <span class="keyword">sizeof</span> hints);</span><br><span class="line">    hints.ai_family = AF_UNSPEC; <span class="comment">// 使用 IPv4 或 IPv6， 都可以</span></span><br><span class="line">    hints.ai_socktype = SOCK_STREAM;</span><br><span class="line">    hints.ai_flags = AI_PASSIVE; <span class="comment">// 帮我填上我的 IP</span></span><br><span class="line"></span><br><span class="line">    getaddrinfo(<span class="literal">NULL</span>, MYPORT, &amp;hints, &amp;res);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 产生一个 socket， bind socket， 并 listen socket：</span></span><br><span class="line"></span><br><span class="line">    sockfd = socket(res-&gt;ai_family, res-&gt;ai_socktype, res-&gt;ai_protocol);</span><br><span class="line">    bind(sockfd, res-&gt;ai_addr, res-&gt;ai_addrlen);</span><br><span class="line">    <span class="built_in">listen</span>(sockfd, BACKLOG);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 现在接受一个进入的连接：</span></span><br><span class="line"></span><br><span class="line">    addr_size = <span class="keyword">sizeof</span> their_addr;</span><br><span class="line">    new_fd = accept(sockfd, (struct sockaddr *)&amp;their_addr, &amp;addr_size);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 准备好与 new_fd 这个 socket descriptor 进行沟通！</span></span><br><span class="line"></span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">    .</span><br></pre></td></tr></table></figure>
+
+<p>若你只是要取得一个连接，你可以用<code>close()</code>关闭正在 listen 的 sockfd，以避免有更多的连接进入同一个 port， 若你有这个需要的话。</p>
+<h2 id="send-与-recv-－-跟我说说话"><a href="#send-与-recv-－-跟我说说话" class="headerlink" title="send() 与 recv() － 跟我说说话"></a>send() 与 recv() － 跟我说说话</h2><p>这两个用来通讯的函数是透过 stream socket 或 connected datagram socket。若你想要使用常规的 unconnected datagram socket，你会需要参考底下的 <code>sendto()</code>及<code>recvfrom()</code>的章节。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">send</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">const</span> <span class="keyword">void</span> *msg, <span class="keyword">int</span> len, <span class="keyword">int</span> flags)</span></span>; <span class="comment">// flags设置0就好了</span></span><br></pre></td></tr></table></figure>
+
+<p><code>send()</code>会返回实际有送出的 byte 数目，这可能会少于你所要传送的数目！有时候你告诉<code>send()</code>要送整笔的资料，而它就是无法处理这麽多资料。它只会尽量将资料送出，并认为你之后会再次送出剩下没送出的部分。要记住，如果<code>send()</code>返回的值与 len 的值不符合的话，你就需要再送出字串剩下的部分。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">recv</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">void</span> *buf, <span class="keyword">int</span> len, <span class="keyword">int</span> flags)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>recv()</code>返回实际读到并写入到缓冲区的 byte 数目，而错误时返回 -1。<code>recv()</code>会返回 0，这只能表示一件事情：远端那边已经关闭了你的连接！</p>
+<h2 id="sendto-与-recvfrom-－-用-DGRAM-风格跟我说说话"><a href="#sendto-与-recvfrom-－-用-DGRAM-风格跟我说说话" class="headerlink" title="sendto() 与 recvfrom() － 用 DGRAM 风格跟我说说话"></a>sendto() 与 recvfrom() － 用 DGRAM 风格跟我说说话</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line">sendto(<span class="keyword">int</span> sockfd, <span class="keyword">const</span> <span class="keyword">void</span> *msg, <span class="keyword">int</span> len, <span class="keyword">unsigned</span> <span class="keyword">int</span> flags, <span class="keyword">const</span> struct sockaddr *to, <span class="keyword">socklen_t</span> tolen);</span><br></pre></td></tr></table></figure>
+
+<p><code>tolen</code>是一个 int，可以单纯地将它设置为<code>sizeof *to</code>或<code>sizeof(struct sockaddr_storage)</code>。（<code>sizeof</code>对于变量不用加括号，对于类型需要加括号）</p>
+<p>为什麽我们要用<code>struct sockaddr_storage</code>做为 socket 的型别呢？为什麽不用<code>struct sockaddr_in</code>呢？因为我们不想要让自己绑在 IPv4 或 IPv6， 所以我们使用通用的泛型<code>struct sockaddr_storage</code>，我们知道这样有足够的空间可以用在 IPv4 与 IPv6。</p>
+<p>记住，如果你<code>connect()</code>到一个 datagram socket，你可以在你全部的交易中只使用<code>send()</code>与<code>recv()</code>。socket本身仍然是 datagram socket，数据包仍然使用 UDP，但是 socket interface 会自动帮你增加目的与来源资料。</p>
+<h2 id="close-与-shutdown-－-从我面前消失吧"><a href="#close-与-shutdown-－-从我面前消失吧" class="headerlink" title="close() 与 shutdown() － 从我面前消失吧"></a>close() 与 shutdown() － 从我面前消失吧</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">close</span>(sockfd);</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">shutdown</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">int</span> how)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果你想要能多点控制 socket 如何关闭，可以使用 <code>shutdown()</code>函数。它让你可以切断单向的通信，或者双向（就像是<code>close()</code>所做的）。0 不允许再接收数据；1 不允许再传送数据；2 不允许再传送与接收数据。</p>
+<p>重要的是<code>shutdown()</code>实际上没有关闭 file descriptor，它只是改变了它的可用性。如果要释放 socket descriptor， 你还是需要使用<code>close()</code>。</p>
+<p>若你在 unconnected datagram socket 上使用<code>shutdown()</code>，它只会单纯的让 socket 无法再进行<code>send()</code>与<code>recv()</code>调用；要记住你只能在有<code>connect()</code>到 datagram socket 的时候使用。</p>
+<h2 id="getpeername-－-你是谁"><a href="#getpeername-－-你是谁" class="headerlink" title="getpeername() － 你是谁"></a>getpeername() － 你是谁</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getpeername</span><span class="params">(<span class="keyword">int</span> sockfd, struct sockaddr *addr, <span class="keyword">int</span> *addrlen)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>getpeername()</code>函数会告诉你另一端连接的 stream socket 是谁。一旦你取得了它们的地址，你就可以用 <code>inet_ntop()</code>、<code>getnameinfo()</code>或<code>gethostbyaddr()</code>取得更多的资料。</p>
+<h2 id="gethostname-－-我是谁"><a href="#gethostname-－-我是谁" class="headerlink" title="gethostname() － 我是谁"></a>gethostname() － 我是谁</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">gethostname</span><span class="params">(<span class="keyword">char</span> *hostname, <span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>比<code>getpeername()</code>更简单的函数是<code>gethostname()</code>，它会返回你运行程序的电脑名，这个名称之后可以用在<code>gethostbyname()</code>，用来定义你本地端电脑的 IP 地址。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" rel="tag"># 网络编程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/14/ATC18-DynaMix/" rel="prev" title="DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记">
+      <i class="fa fa-chevron-left"></i> DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#何谓-Socket"><span class="nav-number">1.</span> <span class="nav-text">何谓 Socket</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结构与数据转换"><span class="nav-number">2.</span> <span class="nav-text">结构与数据转换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#字节顺序"><span class="nav-number">2.1.</span> <span class="nav-text">字节顺序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据结构"><span class="nav-number">2.2.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IP地址"><span class="nav-number">2.3.</span> <span class="nav-text">IP地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#私有网络"><span class="nav-number">2.4.</span> <span class="nav-text">私有网络</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#System-Call"><span class="nav-number">3.</span> <span class="nav-text">System Call</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#getaddrinfo-准备开始"><span class="nav-number">3.1.</span> <span class="nav-text">getaddrinfo() - 准备开始</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#socket-取得-File-Descriptor"><span class="nav-number">3.2.</span> <span class="nav-text">socket() - 取得 File Descriptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bind-－-绑定端口"><span class="nav-number">3.3.</span> <span class="nav-text">bind() － 绑定端口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#connect-嘿！你好"><span class="nav-number">3.4.</span> <span class="nav-text">connect() - 嘿！你好</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#listen-有人会调用我吗"><span class="nav-number">3.5.</span> <span class="nav-text">listen() - 有人会调用我吗</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#accept-谢谢你的调用"><span class="nav-number">3.6.</span> <span class="nav-text">accept() - 谢谢你的调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#send-与-recv-－-跟我说说话"><span class="nav-number">3.7.</span> <span class="nav-text">send() 与 recv() － 跟我说说话</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sendto-与-recvfrom-－-用-DGRAM-风格跟我说说话"><span class="nav-number">3.8.</span> <span class="nav-text">sendto() 与 recvfrom() － 用 DGRAM 风格跟我说说话</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#close-与-shutdown-－-从我面前消失吧"><span class="nav-number">3.9.</span> <span class="nav-text">close() 与 shutdown() － 从我面前消失吧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#getpeername-－-你是谁"><span class="nav-number">3.10.</span> <span class="nav-text">getpeername() － 你是谁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gethostname-－-我是谁"><span class="nav-number">3.11.</span> <span class="nav-text">gethostname() － 我是谁</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yuhang Jiang"
+      src="/images/ykhl.jpeg">
+  <p class="site-author-name" itemprop="name">Yuhang Jiang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jiangyuhang17" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jiangyuhang17" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:yuhangjiang17@foxmail.com" title="E-Mail → mailto:yuhangjiang17@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuhang Jiang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.7.1
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'R5P96eGyWvg68Dl6alvIqIDc-9Nh9j0Va',
+      appKey     : 'wlHLg0F6YkLalGt26FP1D6ya',
+      placeholder: "Just comment!",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
