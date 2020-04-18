@@ -24,17 +24,17 @@
   <meta name="description" content="何谓 SocketSocket 是利用标准 UNIX file descriptors（文件描述符）与其它程序沟通的一种方式。可以用一般的read()与write()调用通过socket进行通讯，但是send()与recv()让你能对数据传输有更多的控制权。 一般的 socket 只能读取传输层以上（不含）的数据， raw socket 一般用在设计 network sniffer，可以让应用程序">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Beej&#39;s Guide to Network Programming 读书笔记（上）">
-<meta property="og:url" content="http://yoursite.com/2020/04/15/Beejs-Guide-to-Network-Programming/index.html">
+<meta property="og:url" content="http://yoursite.com/2020/04/18/Beejs-Guide-to-Network-Programming-1st/index.html">
 <meta property="og:site_name" content="jiangyuhang17">
 <meta property="og:description" content="何谓 SocketSocket 是利用标准 UNIX file descriptors（文件描述符）与其它程序沟通的一种方式。可以用一般的read()与write()调用通过socket进行通讯，但是send()与recv()让你能对数据传输有更多的控制权。 一般的 socket 只能读取传输层以上（不含）的数据， raw socket 一般用在设计 network sniffer，可以让应用程序">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-04-15T15:00:11.000Z">
-<meta property="article:modified_time" content="2020-04-16T10:01:11.214Z">
+<meta property="article:published_time" content="2020-04-18T08:25:20.000Z">
+<meta property="article:modified_time" content="2020-04-18T08:26:49.529Z">
 <meta property="article:author" content="Yuhang Jiang">
 <meta property="article:tag" content="网络编程">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/2020/04/15/Beejs-Guide-to-Network-Programming/">
+<link rel="canonical" href="http://yoursite.com/2020/04/18/Beejs-Guide-to-Network-Programming-1st/">
 
 
 <script id="page-configurations">
@@ -188,7 +188,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/Beejs-Guide-to-Network-Programming/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/18/Beejs-Guide-to-Network-Programming-1st/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/ykhl.jpeg">
@@ -210,16 +210,10 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-04-15 23:00:11" itemprop="dateCreated datePublished" datetime="2020-04-15T23:00:11+08:00">2020-04-15</time>
+              <time title="创建时间：2020-04-18 16:25:20 / 修改时间：16:26:49" itemprop="dateCreated datePublished" datetime="2020-04-18T16:25:20+08:00">2020-04-18</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-16 18:01:11" itemprop="dateModified" datetime="2020-04-16T18:01:11+08:00">2020-04-16</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -231,7 +225,7 @@
             </span>
 
           
-            <span id="/2020/04/15/Beejs-Guide-to-Network-Programming/" class="post-meta-item leancloud_visitors" data-flag-title="Beej's Guide to Network Programming 读书笔记（上）" title="阅读次数">
+            <span id="/2020/04/18/Beejs-Guide-to-Network-Programming-1st/" class="post-meta-item leancloud_visitors" data-flag-title="Beej's Guide to Network Programming 读书笔记（上）" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -246,8 +240,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/15/Beejs-Guide-to-Network-Programming/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/15/Beejs-Guide-to-Network-Programming/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/04/18/Beejs-Guide-to-Network-Programming-1st/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/18/Beejs-Guide-to-Network-Programming-1st/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -305,7 +299,7 @@
 
 <h2 id="socket-取得-File-Descriptor"><a href="#socket-取得-File-Descriptor" class="headerlink" title="socket() - 取得 File Descriptor"></a>socket() - 取得 File Descriptor</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数原型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">socket</span><span class="params">(<span class="keyword">int</span> domain, <span class="keyword">int</span> type, <span class="keyword">int</span> protocol)</span></span>;</span><br></pre></td></tr></table></figure>
 
-<p><code>domain</code>是<code>PF_INET</code>或<code>PF_INET6</code>（在<code>struct sockaddr_in</code>中使用<code>AF_INET</code>，而在调用<code>socket()</code>时使用 PF_INET）；<code>type</code>是<code>SOCK_STREAM</code>或<code>SOCK_DGRAM</code>；而<code>protocol</code>可以设置为0，用来帮给予的<code>type</code>选择适当的协议。 或者你可以调用 getprotobyname() 来查询你想要的协议，＂tcp＂或＂udp＂。</p>
+<p><code>domain</code>是<code>PF_INET</code>或<code>PF_INET6</code>（在<code>struct sockaddr_in</code>中使用<code>AF_INET</code>，而在调用<code>socket()</code>时使用<code>PF_INET</code>）；<code>type</code>是<code>SOCK_STREAM</code>或<code>SOCK_DGRAM</code>；而<code>protocol</code>可以设置为0，用来帮给予的<code>type</code>选择适当的协议。 或者你可以调用 getprotobyname() 来查询你想要的协议，＂tcp＂或＂udp＂。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> s;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">addrinfo</span> <span class="title">hints</span>, *<span class="title">res</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 运行查询，假装我们已经填好 " hints" struct</span></span><br><span class="line">getaddrinfo(<span class="string">" www.example.com"</span> , <span class="string">" http"</span> , &amp;hints, &amp;res);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 你应该要对 getaddrinfo() 进行错误检查, 并走到 " res" 链表查询能用的资料，而不是假设第一笔资料就是好的</span></span><br><span class="line">s = socket(res-&gt;ai_family, res-&gt;ai_socktype, res-&gt;ai_protocol);</span><br></pre></td></tr></table></figure>
 
 <p><code>socket()</code>单纯返回一个之后的 system call 要用的 socket descriptor 给你，错误时会返回 -1，errno 全局变量会设置为该错误的值。</p>
@@ -384,7 +378,10 @@
     <a href="/2020/04/14/ATC18-DynaMix/" rel="prev" title="DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记">
       <i class="fa fa-chevron-left"></i> DynaMix - Dynamic Mobile Device Integration for Efficient Cross-device Resource Sharing 论文笔记
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/18/Beejs-Guide-to-Network-Programming-2nd/" rel="next" title="Beej's Guide to Network Programming 读书笔记（下）">
+      Beej's Guide to Network Programming 读书笔记（下） <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -461,7 +458,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
