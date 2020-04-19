@@ -207,10 +207,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-04-18 16:27:25 / 修改时间：23:49:27" itemprop="dateCreated datePublished" datetime="2020-04-18T16:27:25+08:00">2020-04-18</time>
+              <time title="创建时间：2020-04-18 16:27:25" itemprop="dateCreated datePublished" datetime="2020-04-18T16:27:25+08:00">2020-04-18</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-19 12:50:55" itemprop="dateModified" datetime="2020-04-19T12:50:55+08:00">2020-04-19</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -312,10 +318,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-04-18 16:25:20 / 修改时间：16:26:49" itemprop="dateCreated datePublished" datetime="2020-04-18T16:25:20+08:00">2020-04-18</time>
+              <time title="创建时间：2020-04-18 16:25:20" itemprop="dateCreated datePublished" datetime="2020-04-18T16:25:20+08:00">2020-04-18</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-19 12:58:47" itemprop="dateModified" datetime="2020-04-19T12:58:47+08:00">2020-04-19</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -359,8 +371,8 @@
 
       
           <h1 id="何谓-Socket"><a href="#何谓-Socket" class="headerlink" title="何谓 Socket"></a>何谓 Socket</h1><p>Socket 是利用标准 UNIX file descriptors（文件描述符）与其它程序沟通的一种方式。可以用一般的<code>read()</code>与<code>write()</code>调用通过socket进行通讯，但是<code>send()</code>与<code>recv()</code>让你能对数据传输有更多的控制权。</p>
-<p>一般的 socket 只能读取传输层以上（不含）的数据， raw socket 一般用在设计 network sniffer，可以让应用程序取得网路数据包底层的数据（如 TCP 层、IP 层、数据链路层），并用以分析数据包。</p>
-<p>主要讨论两种 Internet sockets，一个是 Stream Sockets；而另一个是 Datagram Sockets，分别以<code>SOCK_STREAM</code>与<code>SOCK_DGRAM</code>来表示。</p>
+<p>一般的 socket 只能读取传输层以上（不含）的数据，raw socket 一般用在设计 network sniffer，可以让应用程序取得网路数据包底层的数据（如 TCP 层、IP 层、数据链路层），并用以分析数据包。</p>
+<p>主要讨论两种 Internet sockets，一个是 Stream Sockets；而另一个是 Datagram Sockets，分别以<code>SOCK_STREAM</code>与<code>SOCK_DGRAM</code>来表示。不讨论 raw socket，以<code>SOCK_RAW</code>来表示。</p>
 <p>为什麽你要用一个不可靠的底层协议（UDP）？有两个理由：第一个理由是速度，第二个理由还是速度。</p>
 <h1 id="结构与数据转换"><a href="#结构与数据转换" class="headerlink" title="结构与数据转换"></a>结构与数据转换</h1><h2 id="字节顺序"><a href="#字节顺序" class="headerlink" title="字节顺序"></a>字节顺序</h2><p>网络序为大端序，即数字先存储比较大那一边（高位放在左边）</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Network Byte Order &lt;-&gt; Host Byte Order</span></span><br><span class="line">htons() <span class="comment">// host to network short</span></span><br><span class="line">htonl() <span class="comment">// host to network long</span></span><br><span class="line">ntohs() <span class="comment">// network to host short</span></span><br><span class="line">ntohl() <span class="comment">// network to host long</span></span><br></pre></td></tr></table></figure>
