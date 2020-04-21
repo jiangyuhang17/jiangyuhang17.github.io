@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="_h37qg0FUUvECrT0kIVe8kSBPmCPVbu1Tof6hipA14o">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="概述C++ 是一种系统编程语言，标准委员会的目标之一是，将不需要比 C++ 更底层的语言。C++ 应该为程序员提供足够的灵活性，使他们能够在没有语言妨碍的情况下执行所需的任何操作，从而在需要时允许他们“靠近机器”。原子类型和操作允许这样做，从而为低级同步操作提供了便利，这些操作通常会减少为一到两个CPU指令。 在本章中，我将首先介绍内存模型的基础知识，然后继续介绍原子类型和操作，最后介绍原子类型操">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++多线程并发系列（四）">
+<meta property="og:url" content="http://yoursite.com/2020/04/21/Cpp-thread-concurrency-4th/index.html">
+<meta property="og:site_name" content="jiangyuhang17">
+<meta property="og:description" content="概述C++ 是一种系统编程语言，标准委员会的目标之一是，将不需要比 C++ 更底层的语言。C++ 应该为程序员提供足够的灵活性，使他们能够在没有语言妨碍的情况下执行所需的任何操作，从而在需要时允许他们“靠近机器”。原子类型和操作允许这样做，从而为低级同步操作提供了便利，这些操作通常会减少为一到两个CPU指令。 在本章中，我将首先介绍内存模型的基础知识，然后继续介绍原子类型和操作，最后介绍原子类型操">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-21T06:18:15.000Z">
+<meta property="article:modified_time" content="2020-04-21T08:51:41.848Z">
+<meta property="article:author" content="Yuhang Jiang">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="并发控制">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/04/21/Cpp-thread-concurrency-4th/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>C++多线程并发系列（四） | jiangyuhang17</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">jiangyuhang17</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/jiangyuhang17" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/21/Cpp-thread-concurrency-4th/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++多线程并发系列（四）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-04-21 14:18:15 / 修改时间：16:51:41" itemprop="dateCreated datePublished" datetime="2020-04-21T14:18:15+08:00">2020-04-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/04/21/Cpp-thread-concurrency-4th/" class="post-meta-item leancloud_visitors" data-flag-title="C++多线程并发系列（四）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/21/Cpp-thread-concurrency-4th/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/21/Cpp-thread-concurrency-4th/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>C++ 是一种系统编程语言，标准委员会的目标之一是，将不需要比 C++ 更底层的语言。C++ 应该为程序员提供足够的灵活性，使他们能够在没有语言妨碍的情况下执行所需的任何操作，从而在需要时允许他们“靠近机器”。<code>原子类型和操作</code>允许这样做，从而为低级同步操作提供了便利，这些操作通常会减少为一到两个CPU指令。</p>
+<p>在本章中，我将首先介绍内存模型的基础知识，然后继续介绍原子类型和操作，最后介绍原子类型操作可使用的各种同步类型。这非常复杂：除非您打算编写使用原子操作进行同步的代码（例如无锁数据结构），否则您无需了解这些详细信息。</p>
+<h1 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a>内存模型</h1><p>内存模型有两个方面：基本结构方面（与事物在内存中的布局方式有关）和并发方面。结构方面对于并发非常重要，尤其是在您研究低级原子操作时，因此我将从这些方面开始。在 C++ 中，所有内容都与对象和内存位置有关。</p>
+<h2 id="对象与内存位置"><a href="#对象与内存位置" class="headerlink" title="对象与内存位置"></a>对象与内存位置</h2><p>C++ 程序中的所有数据均由对象组成，C++ 标准将对象定义为“存储区域”，尽管它继续为这些对象分配属性，例如它们的类型和生命周期。</p>
+<p>这些对象中的一些是基本类型的简单值，例如int或float，而另一些是用户定义类的实例。有些对象（例如数组，派生类的实例以及具有非静态数据成员的类的实例）具有子对象，而其他对象则没有。无论其类型如何，一个对象都存储在一个或多个存储位置中。</p>
+<ul>
+<li><p>每个变量都是一个对象，包括那些属于其他对象的成员。</p>
+</li>
+<li><p>每个对象至少占用一个内存位置。</p>
+</li>
+<li><p>基本类型的变量（例如int或char）无论它们大小如何，都恰好占据一个内存位置，即使它们是相邻的或数组的一部分。</p>
+</li>
+<li><p>相邻的 bit fields 是同一内存位置的一部分。</p>
+</li>
+</ul>
+<h2 id="对象，内存位置与并发"><a href="#对象，内存位置与并发" class="headerlink" title="对象，内存位置与并发"></a>对象，内存位置与并发</h2><p>C++ 中的多线程应用程序至关重要的部分：一切都取决于这些内存位置。如果有两个线程访问单独的内存位置，那就没问题：一切正常。另一方面，如果两个线程访问相同的内存位置，则必须小心。如果两个线程都没有更新内存位置，那很好。只读数据不需要保护或同步。如果任何一个线程正在修改数据，则存在 race condition（争用情况）的可能性。</p>
+<p>为了避免争用情况，线程就要规定执行顺序。一种方式是使用 mutex，后一线程必须等待前一线程解锁。第二种方式是使用原子操作来避免竞争访问同一内存位置而导致的未定义行为。</p>
+<p>每个对象从初始化开始都有一个修改顺序，这个顺序由来自所有线程对该对象的写操作组成。通常这个顺序在运行时会变动，但在任何给定的程序执行中，系统中所有线程都必须遵循此顺序。</p>
+<p>如果对象不是原子类型，你有责任确保有足够的同步来确保线程同意每个变量的修改顺序。如果不同的线程看到单个变量的值的不同序列，则说明存在数据争用和未定义的行为。使用原子操作就可以把同步的责任抛给编译器。</p>
+<h1 id="C-的原子类型与操作"><a href="#C-的原子类型与操作" class="headerlink" title="C++ 的原子类型与操作"></a>C++ 的原子类型与操作</h1><h2 id="标准原子类型"><a href="#标准原子类型" class="headerlink" title="标准原子类型"></a>标准原子类型</h2><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/yuan-zi-cao-zuo-he-yuan-zi-lei-xing/biao-zhun-yuan-zi-lei-xing" target="_blank" rel="noopener">标准原子类型</a></p>
+<h2 id="std-atomic-flag"><a href="#std-atomic-flag" class="headerlink" title="std::atomic_flag"></a>std::atomic_flag</h2><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/yuan-zi-cao-zuo-he-yuan-zi-lei-xing/std-atomic_flag" target="_blank" rel="noopener">std::atomic_flag</a></p>
+<h2 id="其他原子类型"><a href="#其他原子类型" class="headerlink" title="其他原子类型"></a>其他原子类型</h2><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/yuan-zi-cao-zuo-he-yuan-zi-lei-xing/qi-ta-yuan-zi-lei-xing" target="_blank" rel="noopener">其他原子类型</a></p>
+<h1 id="同步操作和强制排序"><a href="#同步操作和强制排序" class="headerlink" title="同步操作和强制排序"></a>同步操作和强制排序</h1><h2 id="synchronizes-with-relationship"><a href="#synchronizes-with-relationship" class="headerlink" title="synchronizes-with relationship"></a>synchronizes-with relationship</h2><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/synchronizes-with" target="_blank" rel="noopener">synchronizes-with</a></p>
+<h2 id="happens-before-relationship"><a href="#happens-before-relationship" class="headerlink" title="happens-before relationship"></a>happens-before relationship</h2><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/happens-before" target="_blank" rel="noopener">happens-before</a></p>
+<p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/inter-thread-happens-before" target="_blank" rel="noopener">inter-thread happens-before</a></p>
+<p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/strongly-happens-before" target="_blank" rel="noopener">strongly-happens-before</a></p>
+<h2 id="Memory-ordering-for-atomic-operations"><a href="#Memory-ordering-for-atomic-operations" class="headerlink" title="Memory ordering for atomic operations"></a>Memory ordering for atomic operations</h2><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/std-memory_order" target="_blank" rel="noopener">std::memory_order</a></p>
+<h3 id="Relaxed-ordering"><a href="#Relaxed-ordering" class="headerlink" title="Relaxed ordering"></a>Relaxed ordering</h3><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/std-memory_order/relaxed-ordering" target="_blank" rel="noopener">Relaxed ordering</a></p>
+<h3 id="Release-Consume-ordering"><a href="#Release-Consume-ordering" class="headerlink" title="Release-Consume ordering"></a>Release-Consume ordering</h3><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/std-memory_order/release-consume-ordering" target="_blank" rel="noopener">Release-Consume ordering</a></p>
+<h3 id="Release-Acquire-ordering"><a href="#Release-Acquire-ordering" class="headerlink" title="Release-Acquire ordering"></a>Release-Acquire ordering</h3><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/std-memory_order/release-acquire-ordering" target="_blank" rel="noopener">Release-Acquire ordering</a></p>
+<h3 id="Sequentially-consistent-ordering"><a href="#Sequentially-consistent-ordering" class="headerlink" title="Sequentially-consistent ordering"></a>Sequentially-consistent ordering</h3><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/std-memory_order/sequentially-consistent-ordering" target="_blank" rel="noopener">Sequentially-consistent ordering</a></p>
+<h2 id="Fences"><a href="#Fences" class="headerlink" title="Fences"></a>Fences</h2><p><a href="https://downdemo.gitbook.io/cpp-concurrency-in-action-2ed/4.-c++-nei-cun-mo-xing-he-ji-yu-yuan-zi-lei-xing-de-cao-zuo-the-c++-memory-model-and-operations-on-a/tong-bu-cao-zuo-he-qiang-zhi-pai-xu-enforced-ordering/std-atomic_thread_fence" target="_blank" rel="noopener">std::atomic_thread_fence</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C/" rel="tag"># C++</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag"># 并发控制</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/18/Beejs-Guide-to-Network-Programming-2nd/" rel="prev" title="Beej's Guide to Network Programming 读书笔记（下）">
+      <i class="fa fa-chevron-left"></i> Beej's Guide to Network Programming 读书笔记（下）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存模型"><span class="nav-number">2.</span> <span class="nav-text">内存模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对象与内存位置"><span class="nav-number">2.1.</span> <span class="nav-text">对象与内存位置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对象，内存位置与并发"><span class="nav-number">2.2.</span> <span class="nav-text">对象，内存位置与并发</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#C-的原子类型与操作"><span class="nav-number">3.</span> <span class="nav-text">C++ 的原子类型与操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#标准原子类型"><span class="nav-number">3.1.</span> <span class="nav-text">标准原子类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#std-atomic-flag"><span class="nav-number">3.2.</span> <span class="nav-text">std::atomic_flag</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他原子类型"><span class="nav-number">3.3.</span> <span class="nav-text">其他原子类型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#同步操作和强制排序"><span class="nav-number">4.</span> <span class="nav-text">同步操作和强制排序</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#synchronizes-with-relationship"><span class="nav-number">4.1.</span> <span class="nav-text">synchronizes-with relationship</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#happens-before-relationship"><span class="nav-number">4.2.</span> <span class="nav-text">happens-before relationship</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Memory-ordering-for-atomic-operations"><span class="nav-number">4.3.</span> <span class="nav-text">Memory ordering for atomic operations</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Relaxed-ordering"><span class="nav-number">4.3.1.</span> <span class="nav-text">Relaxed ordering</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Release-Consume-ordering"><span class="nav-number">4.3.2.</span> <span class="nav-text">Release-Consume ordering</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Release-Acquire-ordering"><span class="nav-number">4.3.3.</span> <span class="nav-text">Release-Acquire ordering</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sequentially-consistent-ordering"><span class="nav-number">4.3.4.</span> <span class="nav-text">Sequentially-consistent ordering</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fences"><span class="nav-number">4.4.</span> <span class="nav-text">Fences</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yuhang Jiang"
+      src="/images/ykhl.jpeg">
+  <p class="site-author-name" itemprop="name">Yuhang Jiang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jiangyuhang17" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jiangyuhang17" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:yuhangjiang17@foxmail.com" title="E-Mail → mailto:yuhangjiang17@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yuhang Jiang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.7.1
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'R5P96eGyWvg68Dl6alvIqIDc-9Nh9j0Va',
+      appKey     : 'wlHLg0F6YkLalGt26FP1D6ya',
+      placeholder: "Just comment!",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
