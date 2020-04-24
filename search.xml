@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ReFlex - Remote Flash ≈ Local Flash</title>
+    <title>ReFlex - Remote Flash ≈ Local Flash 论文笔记</title>
     <url>/2020/04/21/ASPLOS17-ReFlex/</url>
     <content><![CDATA[<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>对NVMe Flash的远程访问实现了数据中心内Flash容量以及IOPS的灵活扩展和高利用率。但是，现有的用于远程Flash访问的系统会带来巨大的性能开销，或者无法隔离共享每个Flash设备的多个远程clients。</p>
 <p>在实现对Flash的远程访问方面存在重大挑战。要实现低延迟，需要在server和client的网络和存储层上将处理开销降至最低。除了低延迟之外，每台服务器还必须以最低成本实现高吞吐量，从而使一个或多个NVMe Flash设备且具有少量CPU cores的机器达到饱和。此外，要管理共享一个Flash设备的多个租户之间的干扰以及Flash设备的不均匀读写行为，需要一种隔离机制，以保证所有租户的可预测性能。最后，在共享程度，部署规模和用于远程连接的网络协议方面需要具有灵活性。现有的仅软件用于远程Flash访问的选项（例如iSCSI或基于事件的服务器）无法达到性能预期。最近提出的硬件加速选件，例如基于RDMA架构的NVMe，缺乏性能隔离，并且部署灵活性有限。</p>
