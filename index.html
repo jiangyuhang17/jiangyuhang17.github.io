@@ -184,6 +184,115 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/21/ASPLOS17-ReFlex/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/04/21/ASPLOS17-ReFlex/" class="post-title-link" itemprop="url">ReFlex - Remote Flash ≈ Local Flash</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-21 21:36:42" itemprop="dateCreated datePublished" datetime="2020-04-21T21:36:42+08:00">2020-04-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-24 17:36:17" itemprop="dateModified" datetime="2020-04-24T17:36:17+08:00">2020-04-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/04/21/ASPLOS17-ReFlex/" class="post-meta-item leancloud_visitors" data-flag-title="ReFlex - Remote Flash ≈ Local Flash" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/21/ASPLOS17-ReFlex/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/21/ASPLOS17-ReFlex/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>对NVMe Flash的远程访问实现了数据中心内Flash容量以及IOPS的灵活扩展和高利用率。但是，现有的用于远程Flash访问的系统会带来巨大的性能开销，或者无法隔离共享每个Flash设备的多个远程clients。</p>
+<p>在实现对Flash的远程访问方面存在重大挑战。要实现低延迟，需要在server和client的网络和存储层上将处理开销降至最低。除了低延迟之外，每台服务器还必须以最低成本实现高吞吐量，从而使一个或多个NVMe Flash设备且具有少量CPU cores的机器达到饱和。此外，要管理共享一个Flash设备的多个租户之间的干扰以及Flash设备的不均匀读写行为，需要一种隔离机制，以保证所有租户的可预测性能。最后，在共享程度，部署规模和用于远程连接的网络协议方面需要具有灵活性。现有的仅软件用于远程Flash访问的选项（例如iSCSI或基于事件的服务器）无法达到性能预期。最近提出的硬件加速选件，例如基于RDMA架构的NVMe，缺乏性能隔离，并且部署灵活性有限。</p>
+<p>我们提出了ReFlex，一个用于远程Flash访问的软件系统，其性能与访问本地Flash几乎相同。ReFlex使用数据平面内核紧密集成网络和存储处理，以在低资源需求下实现低延迟和高吞吐量。数据平面设计避免了中断和数据拷贝的开销，针对局部性进行了优化，并在高吞吐量（IOPS）和低尾部延迟之间取得了平衡。ReFlex包括一个QoS调度程序，该调度程序实现优先级和速率限制，以便为共享设备的多个租户实施针对延迟和吞吐量的服务水平目标（SLO）。ReFlex提供了用户态库和远程块设备驱动程序来支持client应用程序。</p>
+<p>ReFlex服务器可以支持数千个远程租户。它的QoS调度程序可以通过SLO强制执行租户的尾部延迟和吞吐量要求，同时允许尽力而为的租户消耗NVMe设备的所有剩余吞吐量。</p>
+<p>ReFlex是开源软件。该代码位于 <a href="https://github.com/stanford-mast/reflex。" target="_blank" rel="noopener">https://github.com/stanford-mast/reflex。</a></p>
+<h1 id="Background-and-Motivation"><a href="#Background-and-Motivation" class="headerlink" title="Background and Motivation"></a>Background and Motivation</h1><p>远程访问提供了使用Flash的灵活性，而不管其在数据中心中的物理位置如何，从而提高了利用率并降低了总拥有成本。</p>
+<p>远程访问硬盘在数据中心中已经很普遍，因为它们的高延迟和低吞吐量很容易掩盖网络开销（网络开销不是很明显）。各种软件系统可以使远程磁盘可用作块设备（例如iSCSI），网络文件系统（例如NFS），分布式文件系统（例如Google File System）或分布式数据存储（例如Bigtable）。还提出了使用远程直接存储器访问（RDMA）（例如NVMe over Fabrics）或PCIe互连进行硬件加速访问远程Flash的建议。现有的远程Flash访问方法面临两个主要挑战：以低成本实现高性能，以及在存在干扰的情况下提供可预测的性能。</p>
+<h2 id="Interference-Management"><a href="#Interference-Management" class="headerlink" title="Interference Management"></a>Interference Management</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/21/ASPLOS17-ReFlex/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/21/Cpp-thread-concurrency-4th/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1171,114 +1280,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/16/Cpp-thread-concurrency-1st/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/ykhl.jpeg">
-      <meta itemprop="name" content="Yuhang Jiang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="jiangyuhang17">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/03/16/Cpp-thread-concurrency-1st/" class="post-title-link" itemprop="url">C++多线程并发系列（一）</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-03-16 23:22:08" itemprop="dateCreated datePublished" datetime="2020-03-16T23:22:08+08:00">2020-03-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-13 15:05:41" itemprop="dateModified" datetime="2020-04-13T15:05:41+08:00">2020-04-13</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
-                </span>
-            </span>
-
-          
-            <span id="/2020/03/16/Cpp-thread-concurrency-1st/" class="post-meta-item leancloud_visitors" data-flag-title="C++多线程并发系列（一）" title="阅读次数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span class="leancloud-visitors-count"></span>
-            </span>
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/03/16/Cpp-thread-concurrency-1st/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/16/Cpp-thread-concurrency-1st/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="一些概念"><a href="#一些概念" class="headerlink" title="一些概念"></a>一些概念</h1><p>C++标准本身不支持IPC，所以应用需要依赖具体平台的API来实现IPC。本文不涉及IPC，想要了解IPC这方面内容可以参考特定操作系统的实现，比如<a href="https://book.douban.com/subject/4118577/" target="_blank" rel="noopener">《UNIX》网络编程 卷二</a>。</p>
-<h2 id="并行-amp-并发："><a href="#并行-amp-并发：" class="headerlink" title="并行 &amp; 并发："></a>并行 &amp; 并发：</h2><p>一般解释都是，并发是指宏观上在一段时间内能同时运行多个程序，而并行则指同一时刻能运行多个指令。下面给出一个从目的角度出发的解释：</p>
-<p>并行的主要目的是在硬件支持的基础上，来提升处理大量数据的性能，用来解决一个单一的任务。</p>
-<p>并发的主要目的是 1. 将无关的代码分离，使程序更容易理解和测试 2. 提高任务响应速度。</p>
-<h2 id="任务并行-amp-数据并行"><a href="#任务并行-amp-数据并行" class="headerlink" title="任务并行 &amp; 数据并行"></a>任务并行 &amp; 数据并行</h2><p>任务并行：将单个任务划分成多个任务，同时运行，减少整体运行时间，任务之间可能存在许多依赖关系。</p>
-<p>数据并行：将数据划分成多个不同的部分，每个线程同时对不同的数据部分执行相同的操作。</p>
-<h1 id="线程管理"><a href="#线程管理" class="headerlink" title="线程管理"></a>线程管理</h1>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/16/Cpp-thread-concurrency-1st/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1351,7 +1352,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">16</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
