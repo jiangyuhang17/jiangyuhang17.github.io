@@ -21,16 +21,22 @@
     var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="jiangyuhang17">
-<meta property="og:url" content="http://yoursite.com/tags/AL%E4%BD%8D%E8%BF%90%E7%AE%97/index.html">
+  <meta name="description" content="Introduction在并行高性能计算应用中，多个应用带来IO竞争，导致应用之间带宽的不公平分配。GIFT是一个原则上的动态方案，为竞争的应用获得公平性，改善效率。 已经有很多研究从IO吞吐量和公平性角度去缓解IO竞争。但是确保公平性和最大化吞吐量是相互冲突的，在IO竞争下达到平衡很有挑战性。 在并行高性能计算应用中，IO竞争的副作用被同步IO进度增强了。高性能计算应用本身与同步密不可分；在IO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GIFT - A Coupon Based Throttle-and-Reward Mechanism for Fair and Efficient I&#x2F;O Bandwidth Management on Parallel Storage Systems 论文笔记">
+<meta property="og:url" content="http://yoursite.com/2020/04/24/FAST20-GIFT/index.html">
 <meta property="og:site_name" content="jiangyuhang17">
+<meta property="og:description" content="Introduction在并行高性能计算应用中，多个应用带来IO竞争，导致应用之间带宽的不公平分配。GIFT是一个原则上的动态方案，为竞争的应用获得公平性，改善效率。 已经有很多研究从IO吞吐量和公平性角度去缓解IO竞争。但是确保公平性和最大化吞吐量是相互冲突的，在IO竞争下达到平衡很有挑战性。 在并行高性能计算应用中，IO竞争的副作用被同步IO进度增强了。高性能计算应用本身与同步密不可分；在IO">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-24T10:30:02.000Z">
+<meta property="article:modified_time" content="2020-04-25T02:49:33.917Z">
 <meta property="article:author" content="Yuhang Jiang">
-<meta property="article:tag" content="blog">
+<meta property="article:tag" content="存储">
+<meta property="article:tag" content="调度">
+<meta property="article:tag" content="并行">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/tags/AL%E4%BD%8D%E8%BF%90%E7%AE%97/">
+<link rel="canonical" href="http://yoursite.com/2020/04/24/FAST20-GIFT/">
 
 
 <script id="page-configurations">
@@ -38,11 +44,11 @@
   CONFIG.page = {
     sidebar: "",
     isHome: false,
-    isPost: false
+    isPost: true
   };
 </script>
 
-  <title>标签: AL位运算 | jiangyuhang17</title>
+  <title>GIFT - A Coupon Based Throttle-and-Reward Mechanism for Fair and Efficient I/O Bandwidth Management on Parallel Storage Systems 论文笔记 | jiangyuhang17</title>
   
 
 
@@ -179,54 +185,131 @@
           <div class="content">
             
 
+  <div class="posts-expand">
+      
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h1 class="collection-header">AL位运算
-          <small>标签</small>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/24/FAST20-GIFT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GIFT - A Coupon Based Throttle-and-Reward Mechanism for Fair and Efficient I/O Bandwidth Management on Parallel Storage Systems 论文笔记
         </h1>
-      </div>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-24 18:30:02" itemprop="dateCreated datePublished" datetime="2020-04-24T18:30:02+08:00">2020-04-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-25 10:49:33" itemprop="dateModified" datetime="2020-04-25T10:49:33+08:00">2020-04-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/04/24/FAST20-GIFT/" class="post-meta-item leancloud_visitors" data-flag-title="GIFT - A Coupon Based Throttle-and-Reward Mechanism for Fair and Efficient I/O Bandwidth Management on Parallel Storage Systems 论文笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/24/FAST20-GIFT/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/24/FAST20-GIFT/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <h1 class="collection-header">2020</h1>
+        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>在并行高性能计算应用中，多个应用带来IO竞争，导致应用之间带宽的不公平分配。GIFT是一个原则上的动态方案，为竞争的应用获得公平性，改善效率。</p>
+<p>已经有很多研究从IO吞吐量和公平性角度去缓解IO竞争。但是确保公平性和最大化吞吐量是相互冲突的，在IO竞争下达到平衡很有挑战性。</p>
+<p>在并行高性能计算应用中，IO竞争的副作用被同步IO进度增强了。高性能计算应用本身与同步密不可分；在IO阶段，并行计算的MPI进程会等待所有的进程完成IO时，才能继续执行计算任务，这就是同步IO进度。</p>
+<p>一个高性能计算应用的MPI进程执行并行IO访问多个后端存储设备。后端存储设备被并发运行程序共享，并且随着时间的推移具有不同程度的共享，因此竞争水平也有所不同。不同级别的IO竞争使不同的MPI进程以不同的速率推进，因此导致非同步的IO进度。而非同步IO进度是共享并行存储系统中效率低下的关键原因，（1）计算节点上的计算周期浪费，以及（2）有效系统IO带宽（即，有助于同步IO进程的带宽）的减少。</p>
+<p>由于现有方法无法系统地实现同步IO进度以平衡竞争目标——提高有效的系统IO带宽并提高公平性。所以文章介绍GIFT，这是一种基于优惠券的带宽分配方法，可确保HPC应用程序的同步IO进度，同时最大程度地提高IO带宽利用率并确保并行存储系统上并行应用程序之间的公平性。</p>
+<h2 id="GIFT方法总结"><a href="#GIFT方法总结" class="headerlink" title="GIFT方法总结"></a>GIFT方法总结</h2><p>（1）放宽公平性窗口：GIFT不使用传统的对每个IO请求的实时公平性，而是确保在多个IO阶段和应用程序运行中保持公平。这是由于观察到高性能计算应用程序在运行过程中具有多个IO阶段并且具有高度重复性，并且在整个运行过程中通常表现出相似的行为。</p>
+<p>（2）IO带宽分配的节流和补偿方法：GIFT会时不时地节流某些应用程序的IO带宽，使对IO同步进度无贡献的IO带宽浪费最小化，以尝试改善整体有效的系统IO带宽。此外，放宽公平性窗口使GIFT可以在以后补偿“受限制”的应用程序，以确保公平性。</p>
+<p>首先，GIFT以公平的方式为所有竞争的应用程序分配IO带宽，并确保始终在同一应用程序的所有进程之间实现同步IO进度，这一基本设计原理消除了并行存储系统效率低下的关键根源（第3.1节）。然后，GIFT通过识别和限制某些应用程序的IO带宽份额并扩展其他应用程序的IO带宽份额来减少带宽浪费（第3.2节）。为了最大程度地减少IO带宽浪费，GIFT使用基于约束的线性规划来为应用程序最优地分配带宽（第3.4节）。GIFT向受限制的应用程序发放“优惠券”，这些优惠券的价值与节流程度成正比。稍后，GIFT将“以前发行的优惠券”“赎回”到受限制的应用程序中以确保公平（第3.3节）。</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+    
+    
+    
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-03-18T21:57:53+08:00"
-              content="2020-03-18">
-          03-18
-        </time>
-      </div>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AD%98%E5%82%A8/" rel="tag"># 存储</a>
+              <a href="/tags/%E8%B0%83%E5%BA%A6/" rel="tag"># 调度</a>
+              <a href="/tags/%E5%B9%B6%E8%A1%8C/" rel="tag"># 并行</a>
+          </div>
 
-      <h2 class="post-title">
-          <a class="post-title-link" href="/2020/03/18/LeetCode-78/" itemprop="url">
-            <span itemprop="name">LeetCode 78. 子集</span>
-          </a>
-      </h2>
+        
 
-    </header>
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/21/ASPLOS17-ReFlex/" rel="prev" title="ReFlex - Remote Flash ≈ Local Flash 论文笔记">
+      <i class="fa fa-chevron-left"></i> ReFlex - Remote Flash ≈ Local Flash 论文笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
   </article>
+  
+  
+  
 
-    </div>
   </div>
-  
-  
-  
-
-  
-
 
 
           </div>
           
+    <div class="comments" id="valine-comments"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -273,6 +356,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#GIFT方法总结"><span class="nav-number">1.1.</span> <span class="nav-text">GIFT方法总结</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
