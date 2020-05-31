@@ -184,6 +184,116 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/28/SOCC14-PriorityMeister/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/05/28/SOCC14-PriorityMeister/" class="post-title-link" itemprop="url">PriorityMeister - Tail Latency QoS for Shared Networked Storage</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-28 15:23:47" itemprop="dateCreated datePublished" datetime="2020-05-28T15:23:47+08:00">2020-05-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-05-31 15:07:51" itemprop="dateModified" datetime="2020-05-31T15:07:51+08:00">2020-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/05/28/SOCC14-PriorityMeister/" class="post-meta-item leancloud_visitors" data-flag-title="PriorityMeister - Tail Latency QoS for Shared Networked Storage" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/05/28/SOCC14-PriorityMeister/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/05/28/SOCC14-PriorityMeister/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>在云计算环境下，在共享网络存储系统中提供端到端的尾延迟QoS是非常重要的问题。通常情况下，人们会在90%或95%观察尾延迟。但是，越来越多研究机构和公司开始关心99%甚至99.99%的长延迟。本文讨论99.9%和99.99%的尾延迟。</p>
+<p>在生产环境中的突发性工作负载下，满足尾延迟SLO是有挑战性的，主要因为下面两个原因：第一，尾延迟很大程度上受排队的影响，而突发性工作负载导致共享潜在基础设施的工作负载的排队；第二，端到端的尾延迟受到请求中所有阶段的影响（比如访问存储，通过网络发送数据），因此队列可能在不同时间、不同阶段构建起来。</p>
+<p>之前大部分存储调度的工作都局限在更简单的问题——共享存储带宽；比起延迟QoS，共享带宽是一段时间的平均水平，不会被暂时的排队影响。有一些之前的工作研究延迟QoS，但是主要关注平均延迟；只看平均延迟会掩盖一些会引起掉队的最糟情况。</p>
+<p>关于最近的工作，Cake已经考虑了99%比例下的尾延迟QoS，使用基于反馈控制的技术。但是，像Cake这种通过回应的方法不适用于突发的工作负载，因为突发可能会在Cake对其做出反应之前导致大量SLO违规，如下图所示。在处理多个阶段时，满足延迟SLO的困难更加复杂，因为端到端延迟是由所有阶段延迟的总和组成的。</p>
+<p><img src="/images/socc14-PM-1.png" alt="pic"></p>
+<p>文章介绍了PriorityMeister（PM），这是一种主动式QoS系统，它通过优先级和令牌桶速率限制的组合，在多个阶段实现了端到端尾延迟SLO。 PM通过分析每个阶段的每个工作负载的突发性和负载来工作。反过来，这用于计算每个工作负载的令牌桶速率限制，该限制限制了一个工作负载对共享系统的其他工作负载的影响。 PM中的一个关键思想是在每个阶段为每个工作负载同时使用多个速率限制器。同时使用多个速率限制器可以使我们更好地限制工作负载的突发性。在很好地限制了每个工作负载的突发性之后，我们构建了一个模型来估计最坏情况下的每个工作负载延迟。我们的模型基于网络演算，这是用于最坏情况排队估计的分析框架。</p>
+<p>仅速率限制是不够的，因为工作负载具有不同的延迟要求和不同的工作负载突发性。因此，需要对工作负载进行不同的处理，以满足其延迟SLO，并限制对其他工作负载的影响。 PM使用优先级作为区分工作负载之间的延迟的关键机制。请注意，优先级用于避免对来自具有严格延迟要求的工作负载请求的延迟，而不是根据外部重要性概念对工作负载进行优先级排序。手动设置优先级是很典型的，但是很费力并且容易出错。确实，很难同时捕获每个工作负载的突发性对优先级较低的工作负载的影响。我们的延迟分析模型使PM可以在每个阶段快速搜索较大范围的优先顺序，以自动设置优先级以满足SLO。</p>
+<p>PM在每个阶段还支持不同的每个工作负载优先级和速率限制（与整个过程中的单个优先级相对）。 在第一个工作负载满足其SLO而第二个工作负载不满足的情况下，我们不必让一个工作负载始终具有最高的优先级，而第二个工作负载则具有较低的优先级，我们可以在某些阶段将两个工作负载都设置为最高优先级， 别人的优先级较低。 由于工作负载可能不需要在所有地方都满足其SLO的最高优先级，因此这种混合优先级方案可能会允许更多工作负载满足其SLO。</p>
+<p>PM做出以下主要贡献。首先，我们开发了一种算法，该算法可以自动确定每个阶段每个工作负载的优先级和速率限制，以满足端到端延迟SLO。 PM通过将网络演算与针对给定工作负载同时使用多个速率限制器的思想相结合来实现这些目标。其次，我们构建了一个由网络和存储组成的真实QoS系统，在这里我们证明PM优于Cake的最新方法。第三，我们显示PM可以抵抗错误的存储性能估计，不同程度的工作负载突发性和工作负载不当行为。第四，我们提出了一种简单的方法作为PM的起点，我们将其称为bySLO，我们发现它的表现出奇的好，也胜过Cake。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/05/28/SOCC14-PriorityMeister/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/24/FAST20-GIFT/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1172,113 +1282,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/22/Cpp-thread-concurrency-2nd/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/ykhl.jpeg">
-      <meta itemprop="name" content="Yuhang Jiang">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="jiangyuhang17">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/03/22/Cpp-thread-concurrency-2nd/" class="post-title-link" itemprop="url">C++多线程并发系列（二）</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-03-22 14:35:05" itemprop="dateCreated datePublished" datetime="2020-03-22T14:35:05+08:00">2020-03-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-20 14:42:10" itemprop="dateModified" datetime="2020-04-20T14:42:10+08:00">2020-04-20</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
-                </span>
-            </span>
-
-          
-            <span id="/2020/03/22/Cpp-thread-concurrency-2nd/" class="post-meta-item leancloud_visitors" data-flag-title="C++多线程并发系列（二）" title="阅读次数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span class="leancloud-visitors-count"></span>
-            </span>
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/03/22/Cpp-thread-concurrency-2nd/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/22/Cpp-thread-concurrency-2nd/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="同步对象的类型"><a href="#同步对象的类型" class="headerlink" title="同步对象的类型"></a>同步对象的类型</h1><h2 id="Locks"><a href="#Locks" class="headerlink" title="Locks"></a>Locks</h2><p>Lock（锁）是一个抽象概念，锁保护了对某种共享资源的访问，只有拥有锁，才能访问受保护的共享资源。要拥有锁，首先需要某个 lockable 的对象，然后从该对象中获得锁。</p>
-<p>锁的概念还有着某种 exclusion（排斥），有时可能无法获得锁的所有权，这个操作会失败（返回一些错误代码或异常，以表明获取锁的尝试失败）或阻塞（直到拥有锁才能返回）。</p>
-<h2 id="Mutexes"><a href="#Mutexes" class="headerlink" title="Mutexes"></a>Mutexes</h2><p>Mutex（互斥量，Mutual Exclusion 的缩写），如果不加术语限定，它就是一种 lockable 对象类型，一次只能由一个线程拥有它的锁，只有获得锁的线程才能释放 mutex 上的锁。当 mutex 被锁时，任何获取锁的尝试都将失败或阻塞，即使该尝试是由同一线程发出的。</p>
-<h3 id="Recursive-Mutexes"><a href="#Recursive-Mutexes" class="headerlink" title="Recursive Mutexes"></a>Recursive Mutexes</h3><p>Recursive mutex（嵌套互斥量）类似于 mutex，但是一个线程可以同时拥有多个它的锁。线程A可以在不释放已持有的锁的情况下，获取 recursive mutex 上更多的锁；但是线程B不能获得 recursive mutex 上的任何锁，直到线程A持有的所有锁都已释放。</p>
-<p>在大多数情况下，recursive mutex 是不可取的，因为它使得代码难以理解。</p>
-<h3 id="Reader-Writer-Mutexes"><a href="#Reader-Writer-Mutexes" class="headerlink" title="Reader/Writer Mutexes"></a>Reader/Writer Mutexes</h3>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/22/Cpp-thread-concurrency-2nd/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1351,7 +1354,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-count">18</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
