@@ -184,6 +184,115 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/29/Cpp-thread-concurrency-3rd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/ykhl.jpeg">
+      <meta itemprop="name" content="Yuhang Jiang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="jiangyuhang17">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/03/29/Cpp-thread-concurrency-3rd/" class="post-title-link" itemprop="url">C++多线程并发系列（三）</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-29 10:48:34" itemprop="dateCreated datePublished" datetime="2020-03-29T10:48:34+08:00">2020-03-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-20 17:57:50" itemprop="dateModified" datetime="2020-04-20T17:57:50+08:00">2020-04-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/03/29/Cpp-thread-concurrency-3rd/" class="post-meta-item leancloud_visitors" data-flag-title="C++多线程并发系列（三）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/03/29/Cpp-thread-concurrency-3rd/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/29/Cpp-thread-concurrency-3rd/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>上一篇中，我们看到各种在线程间保护共享数据的方法。有时候我们不仅想要保护数据，还想在独立的线程间进行同步操作。例如，在第一个线程完成前，可能需要等待另一个线程执行完成。通常情况下，线程会等待一个特定事件发生，或者等待某一条件达成。</p>
+<p>尽管可以通过定期检查共享数据中存储的“任务完成”标志或类似内容来执行此操作，但这不是很理想。像这样的线程间同步操作的需求非常普遍，C++标准库以<code>condition variables</code>和<code>future</code>的形式提供了处理它的工具。</p>
+<h1 id="等待一个事件或者其他条件"><a href="#等待一个事件或者其他条件" class="headerlink" title="等待一个事件或者其他条件"></a>等待一个事件或者其他条件</h1><p>当一个线程等待另一个线程完成任务时，它可以用很多种选择。第一，它可以持续地检查共享数据标志，直到另一线程完成工作时对这个标志进行重设；这样线程会消耗宝贵的 CPU 时间来持续地检查对应标志，并且当互斥量被等待线程上锁后，其他线程就没有办法获取锁，这样线程就会持续等待。</p>
+<p>第二个选择线程使用<code>std::this_thread::sleep_for()</code>在检查之间进行周期性的休眠。这个实现就进步很多，因为当线程休眠时，线程没有浪费执行时间，但是很难确定正确的休眠时间。太短的休眠和没有休眠一样，都会浪费执行时间；太长的休眠时间，可能会让任务等待线程醒来。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> flag;</span><br><span class="line"><span class="built_in">std</span>::mutex m;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">wait_for_flag</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="function"><span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lk</span><span class="params">(m)</span></span>;</span><br><span class="line">  <span class="keyword">while</span>(!flag)</span><br><span class="line">  &#123;</span><br><span class="line">    lk.unlock();</span><br><span class="line">    <span class="built_in">std</span>::this_thread::sleep_for(<span class="built_in">std</span>::chrono::milliseconds(<span class="number">100</span>));</span><br><span class="line">    lk.lock();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第三个选择，也是优先的选择，使用C++标准库提供的工具去等待事件的发生。等待由另一个线程触发的事件的最基础机制就是<code>condition variables</code>（条件变量）。</p>
+<h2 id="condition-variables"><a href="#condition-variables" class="headerlink" title="condition variables"></a>condition variables</h2><p>C++标准库对条件变量有两套实现：<code>std::condition_variable</code>和<code>std::condition_variable_any</code>。这两个实现都包含在<code>&lt;condition_variable&gt;</code>头文件的声明中。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/03/29/Cpp-thread-concurrency-3rd/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/22/Cpp-thread-concurrency-2nd/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1113,7 +1222,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1126,7 +1235,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
