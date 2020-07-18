@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Characterizing, Modeling, and Benchmarking RocksDB Key-Value Workloads at Facebook</title>
+    <title>Characterizing, Modeling, and Benchmarking RocksDB Key-Value Workloads at Facebook 论文笔记</title>
     <url>/2020/07/16/FAST20-RocksDBBenchmark/</url>
     <content><![CDATA[<h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>在当今的IT基础设施中，持久性KV存储被广泛用作构建块，用于管理和存储大量数据。然而，由于缺乏跟踪/分析工具以及在操作环境中收集跟踪的困难，表征KV存储的真实工作负载的研究受到了限制。在本文中，我们首先对Facebook上三个典型的RocksDB生产用例的工作负载进行了详细表征:UDB(用于社交图数据的MySQL存储层)、ZippyDB(分布式KV存储)和UP2X(用于AI/ML服务的分布式KV存储)。这些特征揭示了几个有趣的发现:首先，键和值大小的分布与用例/应用程序高度相关;二是KV对的访问具有良好的局部性，并遵循一定的特殊模式;第三，收集的性能指标在UDB中显示强烈的昼夜变化模式，而其他两个没有。</p>
 <p>我们进一步发现，尽管广泛使用的KV基准测试YCSB提供了各种工作负载配置和KV对访问分布模型，但是由于忽视键的空间局部性，YCSB触发的基础存储系统工作负载仍不足以与我们收集的工作负载接近。为了解决这个问题，我们提出了一种基于键范围的建模，并开发了一个可以更好地模拟实际KV存储的工作负载的基准测试。这个基准测试可以综合生成更精确的KV查询，表示对底层存储系统的KV存储的读写。</p>
@@ -102,7 +102,7 @@
       </tags>
   </entry>
   <entry>
-    <title>PriorityMeister - Tail Latency QoS for Shared Networked Storage</title>
+    <title>PriorityMeister - Tail Latency QoS for Shared Networked Storage 论文笔记</title>
     <url>/2020/05/28/SOCC14-PriorityMeister/</url>
     <content><![CDATA[<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>在云计算环境下，在共享网络存储系统中提供端到端的尾延迟QoS是非常重要的问题。通常情况下，人们会在90%或95%观察尾延迟。但是，越来越多研究机构和公司开始关心99%甚至99.99%的长延迟。本文讨论99.9%和99.99%的尾延迟。</p>
 <p>在生产环境中的突发性工作负载下，满足尾延迟SLO是有挑战性的，主要因为下面两个原因：第一，尾延迟很大程度上受排队的影响，而突发性工作负载导致共享潜在基础设施的工作负载的排队；第二，端到端的尾延迟受到请求中所有阶段的影响（比如访问存储，通过网络发送数据），因此队列可能在不同时间、不同阶段构建起来。</p>
