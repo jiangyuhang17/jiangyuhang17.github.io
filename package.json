@@ -1,0 +1,48 @@
+{
+  "name": "jiangyuhang17-blog",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "hexo generate",
+    "clean": "hexo clean",
+    "deploy": "hexo deploy",
+    "server": "hexo server",
+
+    "version": "git add source",
+    "lint": "markdownlint -c .markdownlint.json source"
+  },
+  "hexo": {
+    "version": "7.2.0"
+  },
+  "repository": "jiangyuhang17/jiangyuhang17.github.io",
+  "keywords": [
+    "hexo",
+    "next",
+    "blog"
+  ],
+  "author": "jiangyuhang17 <yuhangjiang17@foxmail.com>",
+  "license": "CC-BY-NC-SA-4.0",
+  "bugs": {
+    "url": "https://github.com/jiangyuhang17/jiangyuhang17.github.io/issues"
+  },
+  "homepage": "https://jiangyuhang17.github.io",
+  "dependencies": {
+    "hexo": "^7.0.0",
+    "hexo-deployer-git": "^4.0.0",
+    "hexo-generator-archive": "^2.0.0",
+    "hexo-generator-category": "^2.0.0",
+    "hexo-generator-index": "^3.0.0",
+    "hexo-generator-searchdb": "^1.4.1",
+    "hexo-generator-tag": "^2.0.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^6.0.0",
+    "hexo-renderer-stylus": "^3.0.0",
+    "hexo-server": "^3.0.0",
+    "hexo-theme-landscape": "^1.0.0",
+    "hexo-theme-next": "^8.19.2",
+    "hexo-word-counter": "^0.2.0"
+  },
+  "devDependencies": {
+    "markdownlint-cli": "0.39.0"
+  }
+}
