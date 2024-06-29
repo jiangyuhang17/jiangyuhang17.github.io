@@ -81,7 +81,7 @@ IAM（identity and access management）支持管理所有你使用GCP资源的�
 
 * Reports，控制台可视工具，监控花费
 
-`quotas`，阻止 error或攻击 导致的资源过度消费，应用在Project层。
+`quotas`，阻止 `error`或`恶意攻击` 导致的资源过度消费，应用在Project层。
 
 * rate quotas，每隔一段时间重制。例如 GKE API 3000 requests for each project per min
 
