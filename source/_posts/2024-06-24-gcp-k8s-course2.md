@@ -2,6 +2,7 @@
 title: Google Cloud k8s 课程2 GKE架构：基础
 date: 2024-06-24 23:00:00
 categories: 云计算
+tags: [云计算]
 description: Google Cloud Skills Boost - DevSecOps Learning Path
 ---
 
