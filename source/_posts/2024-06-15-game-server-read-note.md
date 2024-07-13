@@ -113,6 +113,27 @@ cluster.proxy(node, address)
 
 解决方案，加多一个`state标识`和一个`协程列表`，操作执行时，将state置doing，其他协程判断state=doing时就将自己加到协程列表，然后skynet.wait。在操作执行完后，重置state，然后遍历协程列表依次skynet.wakeup(co)，最后将协程列表置空。
 
+## 第三章 案例 球球大作战
+
+### 封装易用的API
+
+Skynet的API提供了偏底层的功能，不方便使用，通过`snax框架`给出了一套更简单的API。
+
+本节在service模块封装了更简洁的API，service模块是对Skynet服务的一种封装，还封装了重复调用的方法
+
+``` lua service模块
+local M = {
+    --类型ID
+    name = "", -- gateway
+    id = 0, -- 1
+    -- 回调函数
+    exit = nil,
+    init = nil,
+    -- dispatch方法
+    resp = {}
+}
+```
+
 ## 代码地址
 
 https://github.com/luopeiyu/million_game_server
