@@ -28,31 +28,33 @@ description: 百万在线：大型游戏服务端开发 读书笔记
 
 分布式程序要处理`断线重连`、断线期间的`消息重发`，以及 断线后进程间`状态不一致`的问题。
 
-在游戏业务中，开发者一般会把一致性问题抛给具体业务去处理。
+在游戏业务中，开发者一般会把一致性问题抛给`具体业务`去处理。
 
 ### 分布式与单点
 
 #### 难以分割的业务
 
-实现分布式程序的前提是*游戏逻辑能够分割*。
+实现分布式程序的前提是`游戏逻辑能够分割`。
 
 如果游戏规则复杂，各个功能紧密相连，则不容易找到分割的方案，部分功能依然要靠单点的性能支撑，那么`单点`（单个进程、单个线程）的运算能力依然会限制服务端的承载量。
 
 #### 延迟和承载的权衡
 
-多个程序协作意味着消息延迟，某些功能对消息即时性要求很高，比如帧同步。
+多个程序协作意味着`消息延迟`，某些功能对`消息即时性`要求很高，比如帧同步。
 
 ### Actor模型
 
-合理分割功能是分布式模型的一大难点，Actor模型既能符合游戏逻辑的表达，又能让计算机高效执行。
+`合理分割功能`是分布式模型一大难点，Actor模型既能符合游戏逻辑的表达，又能让计算机高效执行。
 
-Actor模型中，每个Actor相互隔离，只通过消息通信，具有天然的并发性。理念是万物皆Actor，它是更进一步的面向对象，即把世间万物都当作Actor对象。Actor可以代表一个角色、一只动物，也可以代表整个游戏场景。
+Actor模型中，每个Actor`相互隔离`，只通过`消息通信`，具有天然的`并发性`。理念是万物皆Actor，它是更进一步的面向对象，即把世间万物都当作Actor对象。Actor可以代表一个角色、一只动物，也可以代表整个游戏场景。
 
 每个Actor都会包含`自身状态`（Items，HP），以及一个`信箱`（消息队列），Actor通过给其他Actor寄信来实现通信。至于收到信件后的反应，取决于`收信Actor`。
 
 ## 第二章 Skynet入门
 
 ### 一些API
+
+目录结构，Service即Actor，放在cservice和service；lib库放在luaclib和lualib。
 
 ``` lua 基础API
 -- 启动一个新服务
@@ -73,8 +75,8 @@ call(addr, type, cmd, ...)
 -- 返回 listenfd
 socket.listen(host, port)
 -- 为listenfd设置新客户端连接时的回调方法connect
--- connect方法获得新连接后，不会立即接收它的数据，需要再次调用socket.start(fd)开始接受
 socket.start(listenfd, connect)
+-- 回调方法connect获得新连接后，不会立即接收它的数据，需要再次调用socket.start(fd)开始接受
 -- 回调方法connect的完整写法
 function connect(fd, addr)
     socket.start(fd)
@@ -103,7 +105,7 @@ cluster.open(node)
 -- 跨节点推送消息
 cluster.send(node, address, cmd, ...)
 cluster.call(node, address, cmd, ...)
--- 为远程节点上的服务创建一个本地代理服务，可以直接用skynet.send和call操作本地代理
+-- 为远程节点上的服务（address）创建一个本地代理服务，可以直接用skynet.send和call操作本地代理
 cluster.proxy(node, address)
 ```
 
@@ -119,11 +121,11 @@ cluster.proxy(node, address)
 
 Skynet的API提供了偏底层的功能，不方便使用，通过`snax框架`给出了一套更简单的API。
 
-本节在service模块封装了更简洁的API，service模块是对Skynet服务的一种封装，还封装了重复调用的方法
+本节在service模块封装了`更简洁的API`，service模块是对Skynet服务的一种封装，还封装了`重复调用`的方法。
 
-``` lua service模块
+``` lua GitHub的service.lua
 local M = {
-    --类型ID
+    -- 服务类型 服务ID
     name = "", -- gateway
     id = 0, -- 1
     -- 回调函数
@@ -133,6 +135,10 @@ local M = {
     resp = {}
 }
 ```
+
+### 分布式登录流程
+
+
 
 ## 代码地址
 
